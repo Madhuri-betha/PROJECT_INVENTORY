@@ -8,41 +8,6 @@ import ErrorPage from "./components/error";
 import Adminadd from "./components/adminadd";
 import Userpage from "./components/userpage";
 import Cookies from "universal-cookie";
-// const router = createBrowserRouter([
-//   {
-//     path: "/",
-//     element: <Root />,
-//     children: [
-//       {
-//         path: "login",
-//         element: <Login />,
-//       },
-//       {
-//         path: "",
-//         element: <Userpage/>,
-//       },
-//       {
-//         path: "admin",
-//         element: <Adminadd />,
-//       },
-//       {
-//         path: "inventory/authenticate",
-//         element: <Auth />,
-//       },
-//       {
-//         path: "*",
-//         element: <ErrorPage/>,
-//       },
-//     ],
-//   },
-// ]);
-// export default function App() {
-//   return (
-//     <React.StrictMode>
-//       <RouterProvider router={router} />
-//     </React.StrictMode>
-//   );
-// }
 
 const cookie = new Cookies();
 
