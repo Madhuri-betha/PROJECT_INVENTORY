@@ -1,7 +1,7 @@
-#INVENTORY_APP
+# INVENTORY_APP
 
-#Features
+# Features
 
--You can add various categories like laptop,mobile etc..
--It supports edit,delete,search for a record
--you can upload csv file and download the records in pdf and csv format
+- You can add various categories like laptop,mobile etc..
+- It supports edit,delete,search for a record
+- you can upload csv file and download the records in pdf and csv format
