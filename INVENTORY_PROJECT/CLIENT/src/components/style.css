@@ -1,0 +1,47 @@
+.head{
+    padding-top: 3px;
+    color:indianred;
+    text-align: center;
+}
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 100vh; */
+  }
+  
+  .file {
+    margin-left: -12.5%;
+    margin-top: 4px;
+    display: flex;
+    margin-bottom: 20px;
+    display:inline-block;
+    padding: 10px;
+    padding-left: 3%;
+    background-color:white;
+    box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.1)
+  }
+
+  .fileaddbtn{
+    margin-left: -15%;
+    border:1px rgb(237, 230, 230) solid;
+    padding: 2px 7px 2px 7px;
+    text-align: center;
+
+  }
+  .fileaddbtn:hover{
+    /* background-color:rgb(221, 215, 215); */
+    color:rgb(148, 126, 126);
+  }
+  td button {
+    display: block;
+    margin: 0 auto;
+  }
+  
+  @media (max-width: 400px) {
+    td button {
+      display: inline-block;
+      margin: 0 5px;
+    }
+  }
+  
