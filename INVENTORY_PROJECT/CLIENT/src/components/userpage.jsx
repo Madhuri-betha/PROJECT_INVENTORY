@@ -87,7 +87,6 @@ export default function Userpage() {
 
     return (
         <div style={{ margin: "2%" }}>
-            <h2 style={{ float: "right", alignItems: "center", marginTop: "1.2%", marginRight: "3%" }}>{user}</h2>
             <div className="ui search" style={{ margin: "10px", float: "right" }}>
                 <div className="ui icon input">
                     <input className="prompt" type="text" placeholder="Search" value={searchQuery}

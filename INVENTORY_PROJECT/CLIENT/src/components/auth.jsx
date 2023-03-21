@@ -24,21 +24,21 @@ export default function Auth() {
           if (res.data[0]) {
             dispatcher(
               setLogins([res.data, cookie.get("username")]),
-              setAdmin(cookie.get("role") === "true")
+              setAdmin(cookie.get("admin") === "true")
             );
             navigate("/");
           } else {
             cookie.set("session_id", "", { path: "/", expires: new Date() });
-            window.location.href = server + "/?app=inventory";
+            window.location.href = server + "/?host=" + window.location.host + "&protocol=" + window.location.protocol + "&app=inventory";
           }
         });
       return;
-    } else {
+    } else{
       let params = new URLSearchParams(window.location.search);
       let session = {};
       for (let p of params) {
         session[p[0]] = p[1];
-        if (p[0] === "role") {
+        if (p[0] === "admin") {
           dispatcher(setAdmin(p[1] === "true"));
         }
         cookie.set(p[0], p[1], { path: "/" });
@@ -46,13 +46,14 @@ export default function Auth() {
       if (session["session_id"]) {
         dispatcher(setLogins([true, cookie.get("username")]));
         // console.log(cookie.getAll());
-        dispatcher(setAdmin(cookie.get("role") === "true"));
+        dispatcher(setAdmin(cookie.get("admin") === "true"));
         navigate("/");
       } else {
         dispatcher(setLogins([false, null]));
-        window.location.href = server + "/?app=inventory";
+        window.location.href = server + "/?host=" + window.location.host + "&protocol=" + window.location.protocol + "&app=inventory";
       }
     }
-  });
+  })
+  // });
   return <></>;
 }

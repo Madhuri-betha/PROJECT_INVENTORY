@@ -41,8 +41,12 @@ const downloadCSV = (csvData, filename) => {
 let temp;
 const Download = (props) => {
   temp = (props.data1)
+
   const handleDownload = (data) => {
-    console.log(data)
+    data.filter(obj=>{
+      delete obj["_id"]
+      return obj;
+    })
     const jsonData = data;
     const csvData = jsonToCSV(jsonData);
     downloadCSV(csvData, 'data.csv');
@@ -87,7 +91,7 @@ const Download = (props) => {
 
   return (
     <div>
-      <button onClick={() => handleDownload(temp)} className="ui button" style={{ margin: "10px", float: "right", marginLeft: "1%" }} ><i class="download icon"></i>csv</button>
+      <button onClick={() => handleDownload(temp)} className="ui button" style={{ margin: "10px", float: "right", marginLeft: "1%" }} ><i className="download icon"></i>csv</button>
 
       <PDFDownloadLink document={<MyDocument data={temp} />} fileName="table.pdf" className="ui button" style={{ margin: "10px", float: "right", marginLeft: "2%" }}>
       {({ blob, url, loading, error }) => (

@@ -5,7 +5,7 @@ let cookie = new Cookies();
 export const checkAuth = async () => {
   if (cookie.get("session_id")) {
     let res = await axios.post(
-      "http://localhost:9000/auth",
+      "http://192.168.1.14:9000/auth",
       { session_id: cookie.get("session_id") },
       {
         headers: { "Content-Type": "application/json" },
@@ -24,7 +24,7 @@ export const logout = async () => {
   let flag = false;
   await axios
     .post(
-      "http://localhost:9000/logout",
+      "http://192.168.1.14:9000/logout",
       { session_id: cookie.get("session_id") },
       {
         headers: { "Content-Type": "application/json" },

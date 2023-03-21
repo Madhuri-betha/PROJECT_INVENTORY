@@ -15,7 +15,7 @@ export default function Root() {
             if (res) {
                 dispatcher(
                     setLogins([res, cookie.get("username")]),
-                    setAdmin(cookie.get("role") === "true")
+                    setAdmin(cookie.get("admin") === "true")
                 );
             } else {
                 cookie.set("session_id", "", { path: "/", expires: new Date() });
@@ -24,7 +24,7 @@ export default function Root() {
             }
         });
     }, []);
-    return (
+    return ( 
         <>
             <Navbar />
             <Outlet />

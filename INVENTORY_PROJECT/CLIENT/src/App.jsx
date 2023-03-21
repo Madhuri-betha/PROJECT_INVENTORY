@@ -11,7 +11,7 @@ import Cookies from "universal-cookie";
 
 const cookie = new Cookies();
 
-const isAdmin = cookie.get("role") === "true";
+const isAdmin = cookie.get("admin") === "true";
 const router=createBrowserRouter(!isAdmin
   ?[
     {
@@ -69,8 +69,8 @@ const router=createBrowserRouter(!isAdmin
 
 export default function App() {
   return (
-    <React.StrictMode>
+    // <React.StrictMode>
       <RouterProvider router={router} />
-    </React.StrictMode>
+    // </React.StrictMode>
   );
 }

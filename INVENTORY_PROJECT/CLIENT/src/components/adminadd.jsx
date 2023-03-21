@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import 'semantic-ui-css/semantic.min.css'
 import axios from 'axios';
 import Table from "./table"
-import { Dropdown } from 'semantic-ui-react';
-import { Menu } from 'semantic-ui-react';
-import './style.css'
-import 'bootstrap/dist/css/bootstrap.min.css';
-// import { Search, Dropdown } from 'semantic-ui-react';
+import { Dropdown, Button } from 'semantic-ui-react';
+import QRCode from 'qrcode';
 import Papa from 'papaparse'
+import './style.css'
+import 'semantic-ui-css/semantic.min.css'
+
+
 function Adminadd() {
-  var endpoint="http://192.168.1.14:9000/"
+  var endpoint = "http://192.168.1.14:9000/"
+  const [canvas, setCanvas] = useState(null);
   const [data, setData] = useState([])
   const [categoryData, setCategoryData] = useState([])
   const [category, setCategory] = useState("")
@@ -28,42 +29,36 @@ function Adminadd() {
   const [csvData, setCsvData] = useState([])
   const [flag, setFlag] = useState(true)
   const [u, setU] = useState("")
-
-
+  const [submittedMsg, setSubmittedMsg] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [opent, setOpent] = useState(false)
   const [options, setOptions] = useState(null)
-  const [selectedValue, setSelectedValue] = useState(null);
+  const [duplicateMsg, setDuplicateMsg] = useState("");
+
+
+  //FETCHING USERS FROM API
   let users = [];
   useEffect(() => {
     fetch("https://backflipt-accounts.onrender.com/users")
       .then(response => response.json())
       .then(data => {
-        let temp = {
-          key: "",
-          text: "",
-          value: ""
-        }
+        let temp = {key: "",text: "",value: ""}
         console.log(data);
         data.forEach(element => {
           temp.key = element.username;
           temp.text = element.username;
           temp.value = element.username;
-
           users.push({ ...temp });
-
         });
-
         setOptions(users);
       })
   }, [])
-  // console.log(users);
 
-  const handleSearchChange = (e, data) => {
-    setUserId(data.value);
-  };
+
 
   //FETCHING DATABASE DATA
   const getData = () => {
-    fetch(endpoint+"getdata")
+    fetch(endpoint + "getdata")
       .then(res => res.json())
       .then(data => {
         setData(data)
@@ -71,9 +66,9 @@ function Adminadd() {
       })
   }
 
-  //FETCHING CATEGORIES
+  //FETCHING USER ENTERED CATEGORIES 
   const getCategory = () => {
-    fetch(endpoint+"idgen")
+    fetch(endpoint + "idgen")
       .then(res => res.json())
       .then(categoryData => {
         setCategoryData(categoryData)
@@ -98,7 +93,7 @@ function Adminadd() {
       })
     })
     setFilteredData(filteredData)
-  }
+  } 
 
   // FORM CATEGORY DISPLAY
   const handleCategoryChange = event => {
@@ -113,6 +108,7 @@ function Adminadd() {
       setCategory(event.target.value);
     };
   }
+
   //ADDING CATEGORIES TO FORM
   var categories = categoryData.map((item, index) => (
     <option key={index} value={item.category}>{item.category}</option>)
@@ -134,13 +130,24 @@ function Adminadd() {
   const handleDateChange = event => {
     setDate(event.target.value);
   };
+  const handleSearchChange = (e, data) => {
+    setUserId(data.value);
+  };
+
+
+  useEffect(() => {
+    setTimeout(() => {
+      setSubmittedMsg(false)
+    }, 3000);
+  }, [submittedMsg])
+
   //FORM SUBMISSION
   const handleSubmit = event => {
     event.preventDefault();
 
     document.getElementById("newform").style.backgroundColor = "#fefeea";
     const newData = { id, category, newcategory, userid, model, serial, date, comments, problems };
-    axios.post(endpoint+"inventory", newData, {
+    axios.post(endpoint + "inventory", newData, {
       headers: {
         "Content-type": "application/json"
       }
@@ -154,7 +161,7 @@ function Adminadd() {
     setSerial('')
     setDate('')
     setToggle(prev => !prev)
-
+    setSubmittedMsg(true);
     document.getElementById("newcategorytext").style.display = "none";
     document.getElementById("newcategorybar").style.display = "none";
   };
@@ -184,7 +191,7 @@ function Adminadd() {
   //FOR DELETION
   function senddata() {
     console.log(id)
-    axios.post(endpoint+"delete", { id: id }, {
+    axios.post(endpoint + "delete", { id: id }, {
       headers: {
         "Content-type": "application/json"
       }
@@ -198,13 +205,11 @@ function Adminadd() {
       senddata()
     }
   }, [deletedRow])
-
-  function deleteFromTable(e) {
-    if (window.confirm("Are you sure you want to delete this item?")) {
-      console.log(e.target.parentElement.parentElement.childNodes[0].innerHTML)
-      setId(e.target.parentElement.parentElement.childNodes[0].innerHTML);
-      setDeletedRow(false)
-    }
+  var iddelete;
+  function deleteFromTable(delId) {
+    console.log(delId);
+    setId(delId)
+    setOpen(true)
   }
   //MULTIPLE SEARCH
   const handleSearch = (e) => {
@@ -256,115 +261,152 @@ function Adminadd() {
   }
 
   function handleFileUpload(event) {
-    event.target.style.color="red"
+    event.target.style.color = "red"
     const file = event.target.files[0];
     Papa.parse(file, {
-      header: true, 
+      header: true,
       complete: (results) => {
         results.data.pop()
         setCsvData(results.data);
       }
     });
   }
+  const handleHide = (e) => {
 
+    setOpen(!open);
+
+  };
 
   function uploadToBackend() {
+    var found;
     console.log("posted data", csvData)
-    var keysArray=Object.keys(csvData[0]);
-    if(keysArray[0]==="category" && keysArray[1]==="userid" && keysArray[2]==="model" && keysArray[3]==="serial" && keysArray[4]==="date" )
-    {
-    axios.post(endpoint+"upload", csvData, {
-      headers: { 'Content-Type': 'application/json' }
+    var keysArray = Object.keys(csvData[0]);
+    if (keysArray[0] === "category" && keysArray[1] === "userid" && keysArray[2] === "model" && keysArray[3] === "serial" && keysArray[4] === "date") {
+      data.forEach(obj1 => {
+        found = csvData.some(obj => obj.serial === obj1.serial)
+      })
+      if (!found) {
+        axios.post(endpoint + "upload", csvData, {
+          headers: { 'Content-Type': 'application/json' }
+        })
+        setFlag(prevState => !prevState)
+
+        document.getElementById("file").value = "";
+        document.getElementById("file").style.color = "black";
+      }
+      else {
+        // alert("serial number must not be duplicate");
+        setOpent(!opent);
+        setDuplicateMsg("serial")
+      }
+    }
+    else {
+      // alert("please specify headers as [category,userid,model,serial,date]");
+      setOpent(!opent);
+      setDuplicateMsg("headers")
+    }
+    document.getElementById("file").value = "";
+    document.getElementById("file").style.color = "black";
+  }
+
+  const downloadQR = (item) => {
+    var keysToDelete = ["_id", "comments", "problems", "category", "model", "date"]
+    keysToDelete.forEach(ele => {
+      delete item[ele]
     })
-    setFlag(prevState => !prevState)
-
-    document.getElementById("file").value="";
-    document.getElementById("file").style.color="black";
-  }
-  else{
-    alert("please specify headers as [category,userid,model,serial,date]");
-  }
-  document.getElementById("file").value="";
-  document.getElementById("file").style.color="black";
-  }
-
+    QRCode.toCanvas(canvas, JSON.stringify(item), { scale: 10 })
+      .then(canvas => {
+        setCanvas(canvas);
+        const pngUrl = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.href = pngUrl;
+        downloadLink.download = 'qrcode.png';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  };
 
   return (
     <>
-    <h2 className="head">Inventory Management System</h2> 
-    <div style={{ backgroundColor: "#fefeea",margin:"0 3% 3% 3%",padding:"2%" }}>
-      <div className="form-container">
-        <form class="ui equal width form" id="newform" style={{ marginLeft: "30px", padding: "1%", width: "30%", float: "left",boxShadow:"0px 0px 10px 5px rgba(0, 0, 0, 0.1)",borderRadius: "3px" }}>
+      <h2 className="head">Inventory Management System</h2>
+      <div style={{ backgroundColor: "#fefeea", margin: "0 3% 3% 3%", padding: "2%" }}>
+        <div className="form-container">
 
-          <label fluid htmlFor="category">Category:</label>
-          <select id="category" onChange={handleCategoryChange} value={category} >
-            <option value="">Select Category</option>
-            <option value="other">other</option>
-            {categories}
-          </select>
-          <label htmlFor="newcategory" id="newcategorytext" style={{ display: "none" }}>Add new category:</label>
-          <input
-            type="text"
-            style={{ display: "none" }}
-            placeholder="enter new category"
-            id="newcategorybar"
-            name="newcategory"
-            onChange={handleNewCategoryChange}
-            value={newcategory}
-          />
+          <form onSubmit={handleSubmit} className="ui equal width form" id="newform" >
+            <label htmlFor="category">Category:</label>
+            <select id="category" onChange={handleCategoryChange} value={category} required >
+              <option value="">Select Category</option>
+              <option value="other">other</option>
+              {categories}
+            </select>
+            <label htmlFor="newcategory" id="newcategorytext" style={{ display: "none" }}>Add new category:</label>
+            <input
+              type="text"
+              style={{ display: "none" }}
+              placeholder="enter new category"
+              id="newcategorybar"
+              // name="newcategory"
+              onChange={handleNewCategoryChange}
+              value={newcategory}
+            />
 
-          <label htmlFor="userid">User Id</label>
-          <Dropdown style={{ width: "100%" }}
-            search
-            selection
-            id="userid"
-            name="userid"
-            options={options}
-            placeholder='Select user'
-            value={userid}
-            onChange={handleSearchChange}
-          />
+            <label htmlFor="userid">User Id</label>
+            <Dropdown style={{ width: "100%" }}
+              search
+              selection
+              id="userid"
+              name="userid"
+              options={options}
+              placeholder='Select user'
+              value={userid}
+              onChange={handleSearchChange} required
+            />
 
-          <label htmlFor="model">Model:</label>
-          <input
-            type="text"
-            name="model"
-            id="model"
-            placeholder='enter model'
-            onChange={handleModelChange}
-            value={model}
-          />
-          <label htmlFor="serial">Serial No:</label>
-          <input
-            type="text"
-            name="serial"
-            id="serial"
-            placeholder='enter serial'
-            onChange={handleSerialChange}
-            value={serial}
-          />
-          <label htmlFor="date">Date:</label>
-          <input
-            type="date"
-            id="date"
-            placeholder="DD-MM-YYYY"
-            onChange={handleDateChange}
-            value={date}
-          />
-          <button type="button" onClick={handleSubmit} class="ui green button" style={{ margin: "10px",float:"right"}}>Submit</button>
-        </form>
+            <label htmlFor="model">Model:</label>
+            <input
+              type="text"
+              // name="model"
+              // id="model"
+              placeholder='enter model'
+              onChange={handleModelChange}
+              value={model} required
+            />
+            <label htmlFor="serial">Serial No:</label>
+            <input
+              type="text"
+              // name="serial"
+              // id="serial"
+              placeholder='enter serial'
+              onChange={handleSerialChange}
+              value={serial} required
+            />
+            <label htmlFor="date">Date:</label>
+            <input
+              type="date"
+              // id="date"
+              placeholder="DD-MM-YYYY"
+              onChange={handleDateChange}
+              value={date} required
+            />
+            <button type="submit" className="ui green button" style={{ margin: "10px", float: "right" }}>Submit</button>
+            {submittedMsg ? <span style={{ color: "red" }}>successsfully submitted</span> : ""}
+          </form>
 
-        {/* SEARCH FORM  */}
-        <form class="ui equal width form" style={{ marginLeft: "50px", width: "30%", float: "right", padding: "1%", boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)", marginRight: "20px",borderRadius: "3px"  }}>
+          {/* SEARCH FORM  */}
+          <form className="ui equal width form" id="searchform">
 
-          <label fluid htmlFor="category">Category:</label>
-          <select id="category">
-            <option value="" >Select Category</option>
-            {categories}
-          </select>
-          
-            <label fluid htmlFor="userid">User Id</label>
-            <Dropdown style={{width:"100%"}}
+            <label htmlFor="category">Category:</label>
+            <select id="category">
+              <option value="" >Select Category</option>
+              {categories}
+            </select>
+
+            <label htmlFor="userid">User Id</label>
+            <Dropdown style={{ width: "100%" }}
               search
               selection
               id="userid"
@@ -377,52 +419,81 @@ function Adminadd() {
                 setU(e.target.innerText)
               }}
             />
-        
-          <label htmlFor="model">Model:</label>
-          <input
-            type="text"
-            name="model"
-            id="model"
-            placeholder='enter model'
-          />
-          <label htmlFor="serial">Serial No:</label>
-          <input
-            type="text"
-            name="serial"
-            id="serial"
-            placeholder='enter serial'
-          />
-          <label htmlFor="date">Date:</label>
-          <input
-            type="date"
-            id="date"
-            placeholder="DD-MM-YYYY"
-          />
-          <button type="button" onClick={handleSearch} class="ui yellow button" style={{ margin: "10px",float:"right" }}>Search</button>
-          <button type="button" onClick={handleReset} class="ui yellow button" style={{ margin: "10px",float:"left" }}>Reset</button>
-        </form>
-      </div>
 
-      <div className='file'>
-  
-        <input id="file" required type="file" onChange={handleFileUpload} accept=".csv" />
-        <button onClick={uploadToBackend} className="fileaddbtn">Add</button>
-      </div>
-    
-
-      <div class="ui search" style={{ float: "left",marginTop:"7%",marginRight:"10%",paddingLeft:"3%",}}>
-        <div class="ui icon input">
-          <input class="prompt" type="text" placeholder="Search" value={searchQuery}
-            onChange={handleSearchQueryChange}  style={{width: "200px",boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)"}}/>
-          <i class="search icon"></i>
+            <label htmlFor="model">Model:</label>
+            <input
+              type="text"
+              name="model"
+              id="model"
+              placeholder='enter model'
+            />
+            <label htmlFor="serial">Serial No:</label>
+            <input
+              type="text"
+              name="serial"
+              id="serial"
+              placeholder='enter serial'
+            />
+            <label htmlFor="date">Date:</label>
+            <input
+              type="date"
+              id="date"
+              placeholder="DD-MM-YYYY"
+            />
+            <button type="button" onClick={handleSearch} className="ui yellow button" style={{ margin: "10px", float: "right" }}>Search</button>
+            <button type="button" onClick={handleReset} className="ui yellow button" style={{ margin: "10px", float: "left" }}>Reset</button>
+          </form>
         </div>
-      </div>
- 
 
-      <Table data={filteredData} addtoform={addtoform} deletefromtable={deleteFromTable} getData={getData} />
-      <hr />
-      <footer style={{ margin: "20px", textAlign:"center" }}>&copy; Copyright 2023 Madhuri</footer>
-    </div>
+        <div className='file'>
+
+          <input id="file" required type="file" onChange={handleFileUpload} accept=".csv" />
+          <button onClick={uploadToBackend} className="fileaddbtn">Add</button>
+        </div>
+
+
+        <div className="ui search" style={{ float: "left", marginTop: "7%", marginRight: "10%", paddingLeft: "3%", }}>
+          <div className="ui icon input">
+            <input className="prompt" type="text" placeholder="Search" value={searchQuery}
+              onChange={handleSearchQueryChange} style={{ width: "200px", boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }} />
+            <i className="search icon"></i>
+          </div>
+        </div>
+
+
+        <Table data={filteredData} addtoform={addtoform} deletefromtable={deleteFromTable} getData={getData} downloadQR={downloadQR} />
+        <canvas ref={setCanvas} style={{ display: 'none' }} />
+        <hr />
+        <footer style={{ margin: "20px", textAlign: "center" }}>&copy; Copyright 2023 Madhuri</footer>
+      </div>
+
+      {/* ON CLICKING DELETE BUTTON WINDOWS OPENS */}
+      <div className={open ? "overlay active" : "overlay"}>
+        {
+          <div className="more-details">
+            <span className="close-button">
+              <i className="fa-regular fa-circle-xmark" onClick={handleHide} ></i>
+            </span>
+            <label> {id} will be deleted</label>
+            <span><Button color='green' onClick={() => { setDeletedRow(false); setOpen(false) }}>Ok</Button>
+              <Button color='red' onClick={handleHide}>Cancel</Button>
+            </span>
+          </div>
+        }
+      </div>
+
+      {/* ON CSV UPLOADING CHECKING FOR SERIAL AND HEADERS  */}
+      <div className={opent ? "overlay active" : "overlay"}>
+        {
+          <div className="more-details">
+            <span className="close-button">
+              <i className="fa-regular fa-circle-xmark" onClick={handleHide} ></i>
+            </span>
+            {duplicateMsg}
+            <Button color='green' onClick={() => { setOpent(false) }}>Ok</Button>
+          </div>
+        }
+      </div>
     </>
   )
 }

@@ -1,11 +1,10 @@
 
 import React,{useEffect, useState} from 'react'
 import 'semantic-ui-css/semantic.min.css'
-import { Menu } from 'semantic-ui-react';
 import './style.css'
-import Addcoments from './addcoments';
+import Addcomments from './addcomments';
 import Download from './download';
-const Table = ({ data, addtoform, getData, deletefromtable }) => {
+const Table = ({ data, addtoform, getData, deletefromtable,downloadQR  }) => {
    
    const tabledata = data.map((item, index) => (
         <tr key={index}>
@@ -17,8 +16,10 @@ const Table = ({ data, addtoform, getData, deletefromtable }) => {
             <td>{item.date}</td>
             <td>{item.comments}</td>
             <td>{item.problems}</td>
-            <td><button onClick={addtoform} class="ui blue button"  Scroll to Top>Edit</button></td>
-            <td><button onClick={deletefromtable} class="ui red button">Delete</button></td>
+            <td><button onClick={() => downloadQR(item)} className="ui lightGrey button">QR Code</button></td>
+            <td><button onClick={addtoform} className="ui blue button"  >Edit</button></td>
+            <td><button onClick={()=>{deletefromtable(item.id)}} className="ui red button">Delete</button></td>
+
         </tr>
     ))
 
@@ -26,9 +27,9 @@ const Table = ({ data, addtoform, getData, deletefromtable }) => {
 
         <div >
              <Download data1={data} />
-             <Addcoments data={data} getData={getData} />
+             <Addcomments data={data} getData={getData} />
            
-            <table class="ui celled table unstackable" style={{boxShadow: "0px 0px 10px 3px rgba(0, 0, 0, 0.1)"}}>
+            <table className="ui celled table unstackable" style={{boxShadow: "0px 0px 10px 3px rgba(0, 0, 0, 0.1)"}}>
                 <thead>
                     <tr>
                         <th>Id</th>
@@ -37,8 +38,10 @@ const Table = ({ data, addtoform, getData, deletefromtable }) => {
                         <th>Model</th>
                         <th>Serial No</th>
                         <th>Date</th>
+                        
                         <th style={{width:"10%"}}>Comments</th>
                         <th style={{width:"10%"}}>Problems</th>
+                        <th>QR</th>
                         <th></th>
                         <th></th>
                     </tr>
