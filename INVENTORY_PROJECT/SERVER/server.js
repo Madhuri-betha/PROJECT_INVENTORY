@@ -4,11 +4,12 @@ const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors')
 
-//db connection
-require("./db/conn.js");
+//DB CONNECTION
+const conn = require('./db/conn.js')
 const Inventorydata = require("./db/models/inventorydetails")
 const Idgenerate = require("./db/models/Idgenerate.js")
 
+//MIDDLEWARES
 app.use(cors())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json());
@@ -16,17 +17,31 @@ app.use(express.static('public'))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
+
+//PORT
 app.listen(9000, () => {
   console.log("server listening at 9000")
 })
 
+
+//HEALTH API
+app.get('/health', (req, res) => {
+  if (conn.readyState === 1) {
+    res.json({ DBstatus: 'UP', ServerStatus: 'Healthy' });
+  } else {
+    res.status(500).json({ DBstatus: 'DOWN', ServerStatus: 'Healthy' });
+  }
+});
+
+//INVENTORY DATABASE DATA
 app.get('/getdata', (req, res) => {
   var data = Inventorydata.find({}, (err, data) => {
-    if (err) { console.log(err); return; }
+    if (err) { console.log(err); return res.status(500).send('Error fetching data from database');; }
     res.send(data);
   });
 })
 
+//IDGENERATE DATABASE DATA
 app.get('/idgen', (req, res) => {
   Idgenerate.find({}, (err, data) => {
     if (err) { console.log(err); return }
@@ -35,8 +50,7 @@ app.get('/idgen', (req, res) => {
 })
 
 
-let newarr;
-
+//CSV FILE UPLOADING
 app.post("/upload", (req, res) => {
   const newData = req.body;
   console.log(newData);
@@ -59,7 +73,7 @@ app.post("/upload", (req, res) => {
   res.send("new data added")
 })
 
-
+//FORM SUBMISSION 
 app.post('/inventory', (req, res) => {
   let idata = req.body
   const dateString = req.body.date; // YYYY-MM-DD format
@@ -104,7 +118,9 @@ app.post('/inventory', (req, res) => {
   }
 })
 
-//delete
+
+
+//DELETING TABLE ROW
 app.post('/delete', (req, res) => {
   console.log("delete")
   console.log(req.body)
@@ -117,7 +133,7 @@ app.post('/delete', (req, res) => {
 
 
 
-//COMMENT POST
+//POSTING COMMENTS
 app.post('/comment', (req, res) => {
   console.log("comments", req.body)
   Inventorydata.findOne({ $or: [{ id: req.body.id.trim() }, { serial: req.body.serial }] }, (err, data) => {
@@ -137,44 +153,6 @@ app.post('/comment', (req, res) => {
   })
   res.send("comments added");
 })
-
-app.post("/auth", (req, res) => {
-  axios
-    .post(
-      "https://backflipt-accounts.onrender.com/checkAuth",
-      {
-        session_id: req.body.session_id,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    )
-    .then((response) => {
-      res.status(200).send(response.data);
-    })
-    .catch((err) => {
-      res.status(503).send("Server Down");
-    });
-});
-
-app.post("/logout", (req, res) => {
-  axios
-    .post(
-      "https://backflipt-accounts.onrender.com/clearSession",
-      { session_id: req.body.session_id },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    )
-    .then((response) =>
-      response.data ? res.send(response.data) : response.send(false)
-    );
-});
-
 
 //USER ENTERED PROBLEM TO ADMIN SIDE
 app.post('/problem', (req, res) => {
@@ -197,6 +175,48 @@ app.post('/problem', (req, res) => {
 
   })
 })
+
+//AUTHENTICATION
+app.post("/auth", (req, res) => {
+  axios
+    .post(
+      "https://backflipt-accounts.onrender.com/checkAuth",
+      {
+        session_id: req.body.session_id,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((response) => {
+      res.status(200).send(response.data);
+    })
+    .catch((err) => {
+      res.status(503).send("Server Down");
+    });
+});
+
+//LOGOUT
+app.post("/logout", (req, res) => {
+  axios
+    .post(
+      "https://backflipt-accounts.onrender.com/clearSession",
+      { session_id: req.body.session_id },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((response) =>
+      response.data ? res.send(response.data) : response.send(false)
+    );
+});
+
+
+
 
 
 
