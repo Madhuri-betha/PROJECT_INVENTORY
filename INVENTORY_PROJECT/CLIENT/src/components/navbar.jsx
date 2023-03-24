@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { Menu } from 'semantic-ui-react'
 import { logout } from '../functions/auth';
 import { Dropdown,Icon } from 'semantic-ui-react';
@@ -10,8 +10,14 @@ export default function Navbar() {
 
     const dispatcher = useDispatch();
     const navigate = useNavigate();
-    const [activeItem, setActiveItem] = useState("home")
-    
+    const [activeItem, setActiveItem] = useState("")
+    const cookie = new Cookies();
+    const uname=cookie.get("username")
+    const [isAdmin, setIsAdmin] = useState(true);
+    useEffect(() => {
+      setIsAdmin(cookie.get("admin") === "true");
+    }, []);
+
     const destroySession = async () => {
         let flag = await logout();
         if (flag === true) {
@@ -22,56 +28,28 @@ export default function Navbar() {
         }
     };
     const State = useSelector((state) => state.globalStates);
-
     const handleItemClick = (e, { name }) => setActiveItem(name)
-    const cookie = new Cookies();
-    const uname=cookie.get("username");
-    const isAdmin = cookie.get("admin") === "true";
+
+   
     return (
         <div>
-            <Menu>
-                {State.loggedIn ? (isAdmin ? (<>
-                    <Menu.Item
-                        name='home'
-                        active={activeItem === 'home'}
-                        as={Link}
-                        to="/"
-                        onClick={handleItemClick}
-                    />
-                    <Menu.Item
-                        name='Add Inventory'
-                        as={Link}
-                        to="/admin"
-                        active={activeItem === 'Add Inventory'}
-                        onClick={handleItemClick}
-                    />
-                    <Menu.Menu position="right">
-                        <Dropdown
-                            item
-                            trigger={
-                                <>
-                                    <Icon name="user circle" />
-                                    {uname}
-                                </>
-                            }
-                        >
-                            <Dropdown.Menu>
-                                <Dropdown.Item onClick={destroySession}>
-                                    <Icon name="sign-out" />
-                                    Logout
-                                </Dropdown.Item>
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </Menu.Menu>
-                </>) : (
+            <Menu fixed='top'>
+                {State.loggedIn ? (
                     <>
                         <Menu.Item
                             name='home'
                             active={activeItem === 'home'}
-                            as={Link}
-                            to="/"
+                            as={NavLink}
+                            to=""
                             onClick={handleItemClick}
                         />
+                        {(cookie.get("admin") === "true") && <Menu.Item
+                        name='Add Inventory'
+                        as={NavLink}
+                        to="/admin"
+                        active={activeItem === 'Add Inventory'}
+                        onClick={handleItemClick}
+                    />}
                         <Menu.Menu position="right">
                             <Dropdown
                                 item
@@ -91,12 +69,12 @@ export default function Navbar() {
                             </Dropdown>
                         </Menu.Menu>
                     </>
-                )) : (<>
+                ) : (<>
                     <Menu.Item
                         name='Login'
                         position='right'
                         active={activeItem === 'Login'}
-                        as={Link}
+                        as={NavLink}
                         to="/login"
                         onClick={handleItemClick}
                     />

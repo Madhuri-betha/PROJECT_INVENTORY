@@ -13,7 +13,7 @@ export default function Userpage() {
     const [id, setID] = useState("")
     const [problem, setProblem] = useState('')
     const [searchQuery, setSearchQuery] = useState("")
-    var endpoint="http://192.168.1.14:9000/"
+    var endpoint = "http://192.168.1.14:9000/"
 
     const handleSearchQueryChange = (e) => {
         setSearchQuery(e.target.value)
@@ -27,7 +27,7 @@ export default function Userpage() {
     });
 
     const getData = () => {
-        fetch(endpoint+"getdata")
+        fetch(endpoint + "getdata")
             .then(res => res.json())
             .then(data => {
                 var b = []
@@ -37,7 +37,8 @@ export default function Userpage() {
                     }
                 })
                 setData(b)
-            })}
+            })
+    }
 
 
     useEffect(getData, [])
@@ -46,7 +47,7 @@ export default function Userpage() {
         const newData = { id, problems }
         if (newData["problems"] !== "") {
             console.log(newData)
-            axios.post(endpoint+"problem", newData, {
+            axios.post(endpoint + "problem", newData, {
                 headers: {
                     "Content-type": "application/json"
                 }
@@ -86,11 +87,11 @@ export default function Userpage() {
 
 
     return (
-        <div style={{ margin: "2%" }}>
+        <div style={{ margin: "2%", marginTop: "7%" }}>
             <div className="ui search" style={{ margin: "10px", float: "right" }}>
                 <div className="ui icon input">
                     <input className="prompt" type="text" placeholder="Search" value={searchQuery}
-                        onChange={handleSearchQueryChange} />
+                        onChange={handleSearchQueryChange} style={{ boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }} />
                     <i className="search icon"></i>
                 </div>
             </div>
@@ -112,8 +113,14 @@ export default function Userpage() {
                     {tabledata}
                 </tbody>
             </table>
-            <hr />
-            <footer style={{ textAlign: "center" }}>&copy; Copyright 2023 Madhuri</footer>
+            {/* <div className={addFileFlag ? "overlay active" : "overlay"}>
+                {
+                    <div className="more-details">{addFileFlag}
+                        <Button color='green' onClick={() => { setAddFileFlag(false) }} style={{ marginTop: "2%", float: "right" }}>Ok</Button>
+                    </div>
+                }
+            </div> */}
+            {/* <footer className='footer'>&copy; Copyright 2023 Madhuri</footer> */}
 
         </div>
     )

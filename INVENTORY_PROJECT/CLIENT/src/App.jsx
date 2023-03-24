@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Root from "./components/root";
 import Login from "./components/login";
@@ -9,9 +9,15 @@ import Adminadd from "./components/adminadd";
 import Userpage from "./components/userpage";
 import Cookies from "universal-cookie";
 
-const cookie = new Cookies();
+export default function App() {
 
-const isAdmin = cookie.get("admin") === "true";
+  const cookie = new Cookies();
+  const [isAdmin, setIsAdmin] = useState(cookie.get("admin") === "true");
+  useEffect(() => {
+    setIsAdmin(cookie.get("admin") === "true");
+  }, []);
+    
+
 const router=createBrowserRouter(!isAdmin
   ?[
     {
@@ -54,7 +60,6 @@ const router=createBrowserRouter(!isAdmin
          path: "",
         element: <Userpage />,
       },
-      
       {
         path: "inventory/authenticate",
         element: <Auth />,
@@ -67,8 +72,7 @@ const router=createBrowserRouter(!isAdmin
   },
 ]  )
 
-export default function App() {
-  return (
+return (
     // <React.StrictMode>
       <RouterProvider router={router} />
     // </React.StrictMode>

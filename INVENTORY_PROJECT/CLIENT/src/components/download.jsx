@@ -1,8 +1,10 @@
 import React from 'react';
+import axios from 'axios';
 import * as FileSaver from 'file-saver';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import 'semantic-ui-css/semantic.min.css'
+
 
 const styles = StyleSheet.create({
   table: {
@@ -56,13 +58,13 @@ const Download = (props) => {
   };
 
 
-  const MyDocument = ({ data }) => (
+  const MyDocument = () => (
     <Document>
       <Page>
         <View style={styles.table}>
           {/* Render table headers */}
 
-          <View style={styles.tableRow}>
+          <View style={styles.tableRow}> 
 
             <Text style={styles.tableHeader}>ID</Text>
             <Text style={styles.tableHeader}>Category</Text>
@@ -73,7 +75,7 @@ const Download = (props) => {
           </View>
 
           {/* Render table data */}
-          {data.map((row) => (
+          {temp.map((row) => (
             <View key={row.id} style={styles.tableRow} >
               <Text style={styles.Text}>{row.id}</Text>
               <Text style={styles.Text}>{row.category}</Text>
@@ -93,7 +95,7 @@ const Download = (props) => {
     <div>
       <button onClick={() => handleDownload(temp)} className="ui button" style={{ margin: "10px", float: "right", marginLeft: "1%" }} ><i className="download icon"></i>csv</button>
 
-      <PDFDownloadLink document={<MyDocument data={temp} />} fileName="table.pdf" className="ui button" style={{ margin: "10px", float: "right", marginLeft: "2%" }}>
+      <PDFDownloadLink document={<MyDocument />} fileName="table.pdf" className="ui button" style={{ margin: "10px", float: "right", marginLeft: "2%" }}>
       {({ blob, url, loading, error }) => (
     <>
       <i className="download icon"></i>

@@ -7,7 +7,6 @@ import Papa from 'papaparse'
 import './style.css'
 import 'semantic-ui-css/semantic.min.css'
 
-
 function Adminadd() {
   var endpoint = "http://192.168.1.14:9000/"
   const [canvas, setCanvas] = useState(null);
@@ -34,7 +33,9 @@ function Adminadd() {
   const [opent, setOpent] = useState(false)
   const [options, setOptions] = useState(null)
   const [duplicateMsg, setDuplicateMsg] = useState("");
-
+  const [searchFlag, setSearchFlag] = useState(false)
+  const [dis,setDis]=useState(false)
+  const [addFileFlag, setAddFileFlag] = useState(false)
 
   //FETCHING USERS FROM API
   let users = [];
@@ -42,7 +43,7 @@ function Adminadd() {
     fetch("https://backflipt-accounts.onrender.com/users")
       .then(response => response.json())
       .then(data => {
-        let temp = {key: "",text: "",value: ""}
+        let temp = { key: "", text: "", value: "" }
         console.log(data);
         data.forEach(element => {
           temp.key = element.username;
@@ -93,7 +94,7 @@ function Adminadd() {
       })
     })
     setFilteredData(filteredData)
-  } 
+  }
 
   // FORM CATEGORY DISPLAY
   const handleCategoryChange = event => {
@@ -114,56 +115,38 @@ function Adminadd() {
     <option key={index} value={item.category}>{item.category}</option>)
   )
   //SETTING FORM VALUES
-  const handleNewCategoryChange = event => {
-    setNewCategory(event.target.value);
-  };
-  const handleUserIdChange = event => {
-    console.log(event.target.value);
-    setUserId(event.target.value);
-  };
-  const handleModelChange = event => {
-    setModel(event.target.value);
-  };
-  const handleSerialChange = event => {
-    setSerial(event.target.value);
-  };
-  const handleDateChange = event => {
-    setDate(event.target.value);
-  };
-  const handleSearchChange = (e, data) => {
-    setUserId(data.value);
-  };
 
-
-  useEffect(() => {
-    setTimeout(() => {
-      setSubmittedMsg(false)
-    }, 3000);
-  }, [submittedMsg])
 
   //FORM SUBMISSION
   const handleSubmit = event => {
-    event.preventDefault();
 
-    document.getElementById("newform").style.backgroundColor = "#fefeea";
+    setSubmittedMsg(true);
+    console.log(id);
+    event.preventDefault();
+    document.getElementById("newform").style.backgroundColor = "rgb(252 252 210)";
     const newData = { id, category, newcategory, userid, model, serial, date, comments, problems };
+    console.log(newData);
     axios.post(endpoint + "inventory", newData, {
       headers: {
         "Content-type": "application/json"
       }
     }).then(() => {
       getData();
+
     });
-    setCategory('')
+    setCategory('');
     setUserId('')
+    setId('')
     setNewCategory('')
     setModel('')
     setSerial('')
     setDate('')
-    setToggle(prev => !prev)
-    setSubmittedMsg(true);
+    setToggle(prev => !prev);
+
+
     document.getElementById("newcategorytext").style.display = "none";
     document.getElementById("newcategorybar").style.display = "none";
+    setDis(false)
   };
 
   //ADD TO FORM
@@ -176,16 +159,19 @@ function Adminadd() {
   }
 
   function addtoform(e) {
-    scrollToTop()
+    
+    scrollToTop();
     setId(e.target.parentElement.parentElement.childNodes[0].innerHTML)
-    setCategory(e.target.parentElement.parentElement.childNodes[1].innerHTML)
+    setCategory(e.target.parentElement.parentElement.childNodes[1].innerHTML);
     setUserId(e.target.parentElement.parentElement.childNodes[2].innerHTML)
     setModel(e.target.parentElement.parentElement.childNodes[3].innerHTML)
     setSerial(e.target.parentElement.parentElement.childNodes[4].innerHTML)
     var datefromtable = e.target.parentElement.parentElement.childNodes[5].innerHTML;
     var parts = datefromtable.split("-")
     var datetoform = parts[2] + "-" + parts[1] + "-" + parts[0]
-    setDate(datetoform)
+    setDate(datetoform);
+    setDis(true)
+
   }
 
   //FOR DELETION
@@ -212,10 +198,14 @@ function Adminadd() {
     setOpen(true)
   }
   //MULTIPLE SEARCH
+  const scrollToBottom = () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
   const handleSearch = (e) => {
 
     var searchData = {}
-    var category = e.target.parentElement.category.value;
+    var category = e.target.parentElement.searchcategory.value;
     if (category !== "")
       searchData.category = category
 
@@ -223,15 +213,15 @@ function Adminadd() {
     if (userid !== "")
       searchData.userid = userid
 
-    var model = e.target.parentElement.model.value;
+    var model = e.target.parentElement.searchmodel.value;
     if (model !== "")
       searchData.model = model
 
-    var serial = e.target.parentElement.serial.value;
+    var serial = e.target.parentElement.searchserial.value;
     if (serial !== "")
       searchData.serial = serial
 
-    var d = e.target.parentElement.date.value;
+    var d = e.target.parentElement.searchdate.value;
     const parts = d.split("-");
     var date = parts[2] + "-" + parts[1] + "-" + parts[0];
     if (date !== "undefined-undefined-")
@@ -240,13 +230,18 @@ function Adminadd() {
     var temp = data;
     console.log("fg", searchData);
     console.log("array", data)
-    for (var keyy in searchData) {
-      temp = temp.filter((row) => row[keyy] === searchData[keyy])
+    if (Object.keys(searchData).length === 0) {
+      setSearchFlag(!searchFlag);
     }
-
-    console.log("temp", temp);
-    setFilteredData(temp)
-    console.log("search filtered")
+    else {
+      for (var keyy in searchData) {
+        temp = temp.filter((row) => row[keyy] === searchData[keyy])
+      }
+      console.log("temp", temp);
+      setFilteredData(temp)
+      scrollToBottom();
+      console.log("search filtered")
+    }
   }
 
 
@@ -260,9 +255,11 @@ function Adminadd() {
     e.target.parentElement.date.value = ""
   }
 
+  var file = "";
+
   function handleFileUpload(event) {
-    event.target.style.color = "red"
-    const file = event.target.files[0];
+    event.target.style.color = "blue"
+    file = event.target.files[0];
     Papa.parse(file, {
       header: true,
       complete: (results) => {
@@ -271,43 +268,66 @@ function Adminadd() {
       }
     });
   }
-  const handleHide = (e) => {
 
-    setOpen(!open);
-
-  };
 
   function uploadToBackend() {
-    var found;
+    var isEmpty=[];
+    console.log("posted data", csvData[0].model)
+    // if(csvData[0].model==""){
+    //   console.log("empty string");
+    // }
+    isEmpty = csvData.filter(obj => {
+      return Object.values(obj).some(val => val ==="" );
+    });
+    console.log(isEmpty);
+  if(isEmpty.length>0){
+    setAddFileFlag(true);
+    setAddFileFlag("fields must not be empty")
+  }
+  else{
+    var found = false;
     console.log("posted data", csvData)
-    var keysArray = Object.keys(csvData[0]);
-    if (keysArray[0] === "category" && keysArray[1] === "userid" && keysArray[2] === "model" && keysArray[3] === "serial" && keysArray[4] === "date") {
-      data.forEach(obj1 => {
-        found = csvData.some(obj => obj.serial === obj1.serial)
-      })
-      if (!found) {
-        axios.post(endpoint + "upload", csvData, {
-          headers: { 'Content-Type': 'application/json' }
+    if (Object.values(csvData).length == 0) {
+      setAddFileFlag(true);
+      setAddFileFlag("Please add file");
+    }
+    else {
+      var keysArray = Object.keys(csvData[0]);
+      if (keysArray[0] === "category" && keysArray[1] === "userid" && keysArray[2] === "model" && keysArray[3] === "serial" && keysArray[4] === "date") {
+        data.forEach(obj1 => {
+          var match=csvData.some(obj => {if(obj.serial === obj1.serial)return true; else return false})
+          if(match){
+            found=true;return;
+          }
         })
-        setFlag(prevState => !prevState)
-
+        console.log(found);
+        if (found == false) {
+          axios.post(endpoint + "upload", csvData, {
+            headers: { 'Content-Type': 'application/json' }
+          })
+          setFlag(prevState => !prevState)
+          setAddFileFlag("successfully added");
+         
+        }
+        else {
+          setOpent(!opent);
+          setDuplicateMsg("serial number must not be duplicate")
+        } 
         document.getElementById("file").value = "";
         document.getElementById("file").style.color = "black";
       }
       else {
-        // alert("serial number must not be duplicate");
         setOpent(!opent);
-        setDuplicateMsg("serial")
+        setDuplicateMsg("please specify headers in same order [category,userid,model,serial,date]")
       }
     }
-    else {
-      // alert("please specify headers as [category,userid,model,serial,date]");
-      setOpent(!opent);
-      setDuplicateMsg("headers")
-    }
-    document.getElementById("file").value = "";
-    document.getElementById("file").style.color = "black";
   }
+  document.getElementById("file").value = "";
+  document.getElementById("file").style.color = "black";
+  setCsvData([])
+}
+
+
 
   const downloadQR = (item) => {
     var keysToDelete = ["_id", "comments", "problems", "category", "model", "date"]
@@ -330,87 +350,122 @@ function Adminadd() {
       });
   };
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (event.target.closest('.more-details') === null) {
+        setOpen(false);
+        setOpent(false); setSubmittedMsg(false); setSearchFlag(false); setAddFileFlag(false);
+      }
+    }
+
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open, opent]);
+
+
+
   return (
-    <>
+    <div style={{ marginTop: "5%" }}>
       <h2 className="head">Inventory Management System</h2>
-      <div style={{ backgroundColor: "#fefeea", margin: "0 3% 3% 3%", padding: "2%" }}>
+      <div style={{ backgroundColor: "rgb(252 252 210)", padding: "2%" }}>
+
         <div className="form-container">
+          <div style={{display:"flex", flexDirection:"column", width:"30%"}}>
+            <form onSubmit={handleSubmit} className="ui equal width form" id="newform" >
+              <label htmlFor="category">Category:</label>
+              <select id="category" onChange={handleCategoryChange} value={category} required disabled={dis} >
+                <option value="">Select Category</option>
+                <option value="other">other</option>
+                {categories}
+              </select>
+              <label htmlFor="newcategory" id="newcategorytext" style={{ display: "none" }}>Add new category:</label>
+              <input
+                type="text"
+                style={{ display: "none" }}
+                placeholder="enter new category"
+                id="newcategorybar"
+                onChange={(e) => { setNewCategory(e.target.value) }}
+                value={newcategory}
+              />
 
-          <form onSubmit={handleSubmit} className="ui equal width form" id="newform" >
-            <label htmlFor="category">Category:</label>
-            <select id="category" onChange={handleCategoryChange} value={category} required >
-              <option value="">Select Category</option>
-              <option value="other">other</option>
-              {categories}
-            </select>
-            <label htmlFor="newcategory" id="newcategorytext" style={{ display: "none" }}>Add new category:</label>
-            <input
-              type="text"
-              style={{ display: "none" }}
-              placeholder="enter new category"
-              id="newcategorybar"
-              // name="newcategory"
-              onChange={handleNewCategoryChange}
-              value={newcategory}
-            />
+              <label htmlFor="userid">User Id</label>
+              <Dropdown style={{ width: "100%" }}
+                search
+                selection
+                id="userid"
+                options={options}
+                placeholder='Select User'
+                value={userid}
+                onChange={(e, data) => { setUserId(data.value); }} required
+              />
 
-            <label htmlFor="userid">User Id</label>
-            <Dropdown style={{ width: "100%" }}
-              search
-              selection
-              id="userid"
-              name="userid"
-              options={options}
-              placeholder='Select user'
-              value={userid}
-              onChange={handleSearchChange} required
-            />
+              <label htmlFor="model">Model:</label>
+              <input
+                type="text"
+                placeholder='enter model'
+                onChange={(e) => { setModel(e.target.value) }}
+                value={model} required
+              />
+              <label htmlFor="serial">Serial No:</label>
+              <input
+                type="text"
+                placeholder='enter serial'
+                onChange={(e) => { setSerial(e.target.value) }}
+                value={serial} required
+              />
+              <label htmlFor="date">Date:</label>
+              <input
+                type="date"
+                placeholder="DD-MM-YYYY"
+                onChange={(e) => { setDate(e.target.value); }}
+                value={date} required
+              />
+              <button type="submit" className="ui green button" style={{ margin: "10px", float: "right" }}>Submit</button>
+              <div className={submittedMsg ? "overlay active" : "overlay"}>
+                {
+                  <div className="more-details">successfully submitted
+                    <hr style={{ border: "1px black solid", width: "100%" }} /> 
+                    <span>
+                    <Button color='green' style={{ marginTop: "2%" }} onClick={()=>{setSubmittedMsg(false)}}>Ok</Button>
+                    {/* <Button color='red'  style={{ marginTop: "2%", float: "right" }} onClick={()=>{setSubmittedMsg(false)}}>Cancel</Button> */}
+                  </span> 
+                  </div>
 
-            <label htmlFor="model">Model:</label>
-            <input
-              type="text"
-              // name="model"
-              // id="model"
-              placeholder='enter model'
-              onChange={handleModelChange}
-              value={model} required
-            />
-            <label htmlFor="serial">Serial No:</label>
-            <input
-              type="text"
-              // name="serial"
-              // id="serial"
-              placeholder='enter serial'
-              onChange={handleSerialChange}
-              value={serial} required
-            />
-            <label htmlFor="date">Date:</label>
-            <input
-              type="date"
-              // id="date"
-              placeholder="DD-MM-YYYY"
-              onChange={handleDateChange}
-              value={date} required
-            />
-            <button type="submit" className="ui green button" style={{ margin: "10px", float: "right" }}>Submit</button>
-            {submittedMsg ? <span style={{ color: "red" }}>successsfully submitted</span> : ""}
-          </form>
+                }
+              </div>
+            </form>
+
+             {/* FILE UPLOAD  */}
+            <div className='file'>
+              <input id="file" required type="file" onChange={handleFileUpload} accept=".csv" />
+              <button onClick={uploadToBackend} className="fileaddbtn">Add</button>
+              <div className={addFileFlag ? "overlay active" : "overlay"}>
+                {
+                  <div className="more-details">{addFileFlag}
+                    <Button color='green' onClick={() => { setAddFileFlag(false) }} style={{ marginTop: "2%", float: "right" }}>Ok</Button>
+                  </div>
+                }
+              </div>
+            </div>
+
+          </div>
 
           {/* SEARCH FORM  */}
           <form className="ui equal width form" id="searchform">
 
-            <label htmlFor="category">Category:</label>
-            <select id="category">
+            <label htmlFor="searchcategory">Category:</label>
+            <select id="searchcategory">
               <option value="" >Select Category</option>
               {categories}
             </select>
 
-            <label htmlFor="userid">User Id</label>
+            <label htmlFor="searchuserid">User Id</label>
             <Dropdown style={{ width: "100%" }}
               search
               selection
-              id="userid"
-              name="userid"
+              id="searchuserid"
               options={options}
               placeholder='Select user'
               value={u}
@@ -420,24 +475,22 @@ function Adminadd() {
               }}
             />
 
-            <label htmlFor="model">Model:</label>
+            <label htmlFor="searchmodel">Model:</label>
             <input
               type="text"
-              name="model"
-              id="model"
+              id="searchmodel"
               placeholder='enter model'
             />
-            <label htmlFor="serial">Serial No:</label>
+            <label htmlFor="searchserial">Serial No:</label>
             <input
               type="text"
-              name="serial"
-              id="serial"
+              id="searchserial"
               placeholder='enter serial'
             />
-            <label htmlFor="date">Date:</label>
+            <label htmlFor="searchdate">Date:</label>
             <input
               type="date"
-              id="date"
+              id="searchdate"
               placeholder="DD-MM-YYYY"
             />
             <button type="button" onClick={handleSearch} className="ui yellow button" style={{ margin: "10px", float: "right" }}>Search</button>
@@ -445,14 +498,11 @@ function Adminadd() {
           </form>
         </div>
 
-        <div className='file'>
-
-          <input id="file" required type="file" onChange={handleFileUpload} accept=".csv" />
-          <button onClick={uploadToBackend} className="fileaddbtn">Add</button>
-        </div>
 
 
-        <div className="ui search" style={{ float: "left", marginTop: "7%", marginRight: "10%", paddingLeft: "3%", }}>
+
+        {/* GLOBAL SEARCH BAR  */}
+        <div className="ui search" style={{ float: "left", marginTop: "2%", marginRight: "10%", marginBottom :"2%",paddingLeft: "3%", }}>
           <div className="ui icon input">
             <input className="prompt" type="text" placeholder="Search" value={searchQuery}
               onChange={handleSearchQueryChange} style={{ width: "200px", boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }} />
@@ -460,41 +510,49 @@ function Adminadd() {
           </div>
         </div>
 
-
         <Table data={filteredData} addtoform={addtoform} deletefromtable={deleteFromTable} getData={getData} downloadQR={downloadQR} />
         <canvas ref={setCanvas} style={{ display: 'none' }} />
         <hr />
-        <footer style={{ margin: "20px", textAlign: "center" }}>&copy; Copyright 2023 Madhuri</footer>
-      </div>
+        <footer style={{ textAlign: "center" }}>&copy; Copyright 2023 Madhuri</footer>
 
-      {/* ON CLICKING DELETE BUTTON WINDOWS OPENS */}
-      <div className={open ? "overlay active" : "overlay"}>
-        {
-          <div className="more-details">
-            <span className="close-button">
-              <i className="fa-regular fa-circle-xmark" onClick={handleHide} ></i>
-            </span>
-            <label> {id} will be deleted</label>
-            <span><Button color='green' onClick={() => { setDeletedRow(false); setOpen(false) }}>Ok</Button>
-              <Button color='red' onClick={handleHide}>Cancel</Button>
-            </span>
-          </div>
-        }
-      </div>
 
-      {/* ON CSV UPLOADING CHECKING FOR SERIAL AND HEADERS  */}
-      <div className={opent ? "overlay active" : "overlay"}>
-        {
-          <div className="more-details">
-            <span className="close-button">
-              <i className="fa-regular fa-circle-xmark" onClick={handleHide} ></i>
-            </span>
-            {duplicateMsg}
-            <Button color='green' onClick={() => { setOpent(false) }}>Ok</Button>
-          </div>
-        }
+        {/* ON CLICKING DELETE BUTTON WINDOWS OPENS */}
+        <div className={open ? "overlay active" : "overlay"}>
+          {
+            <div className="more-details">
+              <label> {id} will be deleted</label>
+              <hr style={{ border: "1px black solid", width: "100%" }} />
+              <span>
+                <Button color='red' onClick={() => { setDeletedRow(false); setOpen(false) }} style={{ marginTop: "2%" }}>Delete</Button>
+                <Button color='blue' onClick={() => { setOpen(!open) }} style={{ marginTop: "2%", float: "right" }}>Cancel</Button>
+              </span>
+            </div>
+          }
+        </div>
+
+        {/* ON CSV UPLOADING CHECKING FOR SERIAL AND HEADERS  */}
+        <div className={opent ? "overlay active" : "overlay"}>
+          {
+            <div className="more-details">
+              {duplicateMsg}
+              <Button color='green' onClick={() => { setOpent(false) }} style={{ marginTop: "2%", float: "right" }}>Ok</Button>
+            </div>
+          }
+        </div>
+
+        {/* ON EMPTY SEARCHING ALERT */}
+        <div className={searchFlag ? "overlay active" : "overlay"}>
+          {
+            <div className="more-details">
+              Please Enter atleast one value to search
+              <Button color='green' onClick={() => { setSearchFlag(false) }} style={{ marginTop: "2%", float: "right" }}>Ok</Button>
+
+            </div>
+          }
+        </div>
+
       </div>
-    </>
+    </div>
   )
 }
 export default Adminadd;
