@@ -29,7 +29,9 @@ const Inventoryschema = new mongoose.Schema({
     },
     problems:{type:String},
     
-}, {
+},
+{ timestamps: true },
+{
     versionKey: false,
 })
 

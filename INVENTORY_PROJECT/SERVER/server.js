@@ -53,23 +53,31 @@ app.get('/idgen', (req, res) => {
 //CSV FILE UPLOADING
 app.post("/upload", (req, res) => {
   const newData = req.body;
-  console.log(newData);
+  console.log("vbh",newData);
+  if(Object.keys(newData).length > 0)
+  {
+    console.log("gh");
   newData.map(ele => {
     let idletter = ele.category.substring(0, 2).toUpperCase()
-    Idgenerate.findOneAndUpdate({ category: ele.category.toLowerCase() }, { $inc: { count: 1 } }, { new: true }, async (err, data) => {
-      if (data == null) {
+    Idgenerate.findOne({category: ele.category.toLowerCase()}, async (err,data)=>{
+      if(data==null){
         const b = new Idgenerate({ category: ele.category, count: 1 })
-        b.save();
+        await b.save();
       }
-      console.log(data);
+      else{
+        await Idgenerate.findOneAndUpdate({ category: ele.category.toLowerCase() }, { $inc: { count: 1 } }, { new: true })
+      }
+      Idgenerate.findOne({category:ele.category},async(err,data)=>{
       let b = idletter + "_" + data.count;
       ele["id"] = b;
       console.log(ele);
       let createData = new Inventorydata(ele)
       console.log(createData)
       await createData.save();
+      })
     })
   })
+}
   res.send("new data added")
 })
 
@@ -81,13 +89,9 @@ app.post('/inventory', (req, res) => {
   req.body.date = parts[2] + "-" + parts[1] + "-" + parts[0];
   console.log(req.body.date)
   if (idata.id && idata.id != "") {
-    Inventorydata.findOneAndUpdate({ id: req.body.id }, {
-      userid: req.body.userid, model: req.body.model,
-      serial: req.body.serial, date: req.body.date
-    }, { new: true }, (err, data2) => {
+    Inventorydata.findOneAndUpdate({ id: req.body.id }, req.body, { new: true }, (err, data2) => {
       console.log(data2);
     })
-    res.send("added")
   }
   else {
     var data1;
@@ -100,7 +104,6 @@ app.post('/inventory', (req, res) => {
       req.body.id = idletter + "_" + 1;
       data1 = new Inventorydata(idata);
       data1.save();
-      res.send(data1);
     }
     else {
       console.log("3")
@@ -111,11 +114,12 @@ app.post('/inventory', (req, res) => {
           idata.id = idletter + "_" + data.count;
           data1 = new Inventorydata(idata,{ordered:false});
           data1.save();
-          res.send(data1);
+
         })
       })
     }
   }
+  res.send("data added")
 })
 
 
@@ -136,6 +140,9 @@ app.post('/delete', (req, res) => {
 //POSTING COMMENTS
 app.post('/comment', (req, res) => {
   console.log("comments", req.body)
+  const commentData=req.body;
+  if(Object.keys(commentData).length>0)
+  {
   Inventorydata.findOne({ $or: [{ id: req.body.id.trim() }, { serial: req.body.serial }] }, (err, data) => {
     console.log("ghjk", data["comments"]);
     if (data["comments"] ==="undefined") {
@@ -152,10 +159,16 @@ app.post('/comment', (req, res) => {
     }
   })
   res.send("comments added");
+}
+else{
+  res.send("please post some content")
+}
 })
 
 //USER ENTERED PROBLEM TO ADMIN SIDE
 app.post('/problem', (req, res) => {
+  if(Object.keys(req.body).length>0)
+  {
   console.log("lawrence")
   console.log(req.body)
   Inventorydata.findOne({ id: req.body.id }, (err, data) => {
@@ -174,6 +187,11 @@ app.post('/problem', (req, res) => {
     }
 
   })
+  res.send("problem posted")
+}
+else{
+  res.send("please post some content")
+}
 })
 
 //AUTHENTICATION
