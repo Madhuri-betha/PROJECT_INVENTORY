@@ -17,7 +17,7 @@ const Addcomments = ({data,getData }) => {
     let serialobject = { key: "", text: "", value: "" }
     let idarr=[];
     let serialarr=[]
-    console.log(data);
+    // console.log(data);
     useEffect(()=>{
     data.forEach(element => {
       idobject.key = element.id;
@@ -35,7 +35,7 @@ const Addcomments = ({data,getData }) => {
     setSerialOptions(serialarr);
 },[data])
 // console.log("comments",users);
-console.log("comments",idOptions);
+// console.log("comments",idOptions);
 
     var endpoint = "http://192.168.1.14:9000/"
     const [open, setOpen] = useState(false)
@@ -48,12 +48,12 @@ console.log("comments",idOptions);
 
     const handleCommentClick = () => {
         commentdata={id,serial,comments}
-        console.log("ghjkjhgfvghj",commentdata);
-        console.log("length",Object.values(commentdata).length);
+        // console.log("ghjkjhgfvghj",commentdata);
+        // console.log("length",Object.values(commentdata).length);
         setOpen(false);
         if((commentdata.id!="" || commentdata.serial!="" ) && commentdata.comments!="")
         {
-        console.log("comments", commentdata);
+        // console.log("comments", commentdata);
         axios.post(endpoint + "comment", commentdata, {
             headers: {
                 "Content-Type": "application/json"

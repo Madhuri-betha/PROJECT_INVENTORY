@@ -20,7 +20,7 @@ export default function Auth() {
           {
             headers: { "Content-Type": "application/json" },
           }
-        )
+        ) 
         .then((res) => {
           if (res.data[0]) {
             dispatcher(

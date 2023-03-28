@@ -114,7 +114,7 @@ function Adminadd() {
   var categories = categoryData.map((item, index) => (
     <option key={index} value={item.category}>{item.category}</option>)
   )
-  //SETTING FORM VALUES
+
 
 
   //FORM SUBMISSION
@@ -132,7 +132,6 @@ function Adminadd() {
       }
     }).then(() => {
       getData();
-
     });
     setCategory('');
     setUserId('')
@@ -142,8 +141,6 @@ function Adminadd() {
     setSerial('')
     setDate('')
     setToggle(prev => !prev);
-
-
     document.getElementById("newcategorytext").style.display = "none";
     document.getElementById("newcategorybar").style.display = "none";
     setDis(false)
@@ -159,7 +156,7 @@ function Adminadd() {
   }
 
   function addtoform(e) {
-    
+
     scrollToTop();
     setId(e.target.parentElement.parentElement.childNodes[0].innerHTML)
     setCategory(e.target.parentElement.parentElement.childNodes[1].innerHTML);
@@ -273,9 +270,6 @@ function Adminadd() {
   function uploadToBackend() {
     var isEmpty=[];
     console.log("posted data", csvData[0].model)
-    // if(csvData[0].model==""){
-    //   console.log("empty string");
-    // }
     isEmpty = csvData.filter(obj => {
       return Object.values(obj).some(val => val ==="" );
     });
@@ -357,7 +351,6 @@ function Adminadd() {
         setOpent(false); setSubmittedMsg(false); setSearchFlag(false); setAddFileFlag(false);
       }
     }
-
     window.addEventListener('mousedown', handleClickOutside);
     return () => {
       window.removeEventListener('mousedown', handleClickOutside);

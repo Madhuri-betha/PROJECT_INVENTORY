@@ -75,6 +75,6 @@ const router=createBrowserRouter(!isAdmin
 return (
     // <React.StrictMode>
       <RouterProvider router={router} />
-    // </React.StrictMode>
+    /* </React.StrictMode> */
   );
 }

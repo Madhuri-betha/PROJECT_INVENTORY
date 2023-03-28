@@ -13,12 +13,10 @@ export const checkAuth = async () => {
     );
     return res.data[0];
   } else {
-    // cookie.set("session_id", "", { path: "/", expires: new Date() });
     return false;
   }
 };
-// dispatcher(setLogins([res.data, sessionStorage.getItem("username")]));
-//           navigate("/bug-hunter");
+
 
 export const logout = async () => {
   let flag = false;
