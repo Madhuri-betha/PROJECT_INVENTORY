@@ -22,7 +22,7 @@ export default function Auth() {
           }
         ) 
         .then((res) => {
-          if (res.data[0]) {
+          if (res.data.sessionExist) {
             dispatcher(
               setLogins([res.data, cookie.get("username")]),
               setAdmin(cookie.get("admin") === "true")

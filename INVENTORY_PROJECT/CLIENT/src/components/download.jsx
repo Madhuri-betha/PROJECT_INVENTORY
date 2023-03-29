@@ -1,5 +1,5 @@
 import React from 'react';
-import axios from 'axios';
+
 import * as FileSaver from 'file-saver';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
@@ -41,6 +41,7 @@ const downloadCSV = (csvData, filename) => {
 };
 
 let temp;
+
 const Download = (props) => {
   temp = (props.data1)
 
@@ -52,9 +53,6 @@ const Download = (props) => {
     const jsonData = data;
     const csvData = jsonToCSV(jsonData);
     downloadCSV(csvData, 'data.csv');
-  };
-  const downloadPDF = (pdfData, filename) => {
-    FileSaver.saveAs(pdfData, filename);
   };
 
 
@@ -96,13 +94,12 @@ const Download = (props) => {
       <button onClick={() => handleDownload(temp)} className="ui button" style={{ margin: "10px", float: "right", marginLeft: "1%" }} ><i className="download icon"></i>csv</button>
 
       <PDFDownloadLink document={<MyDocument />} fileName="table.pdf" className="ui button" style={{ margin: "10px", float: "right", marginLeft: "2%" }}>
-      {({ blob, url, loading, error }) => (
+      {({ loading, error }) => (
     <>
       <i className="download icon"></i>
       {loading ? '..' : "pdf"}
     </>
   )}
-
       </PDFDownloadLink>
     </div>
   );

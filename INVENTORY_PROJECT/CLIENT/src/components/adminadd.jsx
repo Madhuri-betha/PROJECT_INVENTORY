@@ -6,12 +6,19 @@ import QRCode from 'qrcode';
 import Papa from 'papaparse'
 import './style.css'
 import 'semantic-ui-css/semantic.min.css'
+import { useSelector } from 'react-redux';
 
 function Adminadd() {
+  const c = useSelector((store) => store.globalStates)
+  console.log("redu", c);
+
   var endpoint = "http://192.168.1.14:9000/"
+
   const [canvas, setCanvas] = useState(null);
   const [data, setData] = useState([])
   const [categoryData, setCategoryData] = useState([])
+  const [filteredData, setFilteredData] = useState([])
+  
   const [category, setCategory] = useState("")
   const [userid, setUserId] = useState(null)
   const [newcategory, setNewCategory] = useState("")
@@ -22,20 +29,22 @@ function Adminadd() {
   const [comments, setComments] = useState("")
   const [problems, setProblems] = useState("")
   const [id, setId] = useState("")
+  const [description, setDescription] = useState("")
+
   const [deletedRow, setDeletedRow] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredData, setFilteredData] = useState([])
   const [csvData, setCsvData] = useState([])
   const [flag, setFlag] = useState(true)
-  const [u, setU] = useState("")
   const [submittedMsg, setSubmittedMsg] = useState(false)
   const [open, setOpen] = useState(false)
   const [opent, setOpent] = useState(false)
   const [options, setOptions] = useState(null)
   const [duplicateMsg, setDuplicateMsg] = useState("");
   const [searchFlag, setSearchFlag] = useState(false)
-  const [dis,setDis]=useState(false)
+  const [dis, setDis] = useState(false)
   const [addFileFlag, setAddFileFlag] = useState(false)
+  const [submitFlag,setSubmitFlag]=useState(false)
+
+
 
   //FETCHING USERS FROM API
   let users = [];
@@ -82,19 +91,7 @@ function Adminadd() {
     getCategory();
   }, [toggle, deletedRow, flag])
 
-  //GLOBAL SEARCH
-  const handleSearchQueryChange = (event) => {
-    setSearchQuery(event.target.value);
-    var filteredData;
-    filteredData = data.filter((row) => {
-      return Object.values(row).some((value) => {
-        if (isNaN(value))
-          return value.toLowerCase().includes((event.target.value).toLowerCase())
-        return false
-      })
-    })
-    setFilteredData(filteredData)
-  }
+
 
   // FORM CATEGORY DISPLAY
   const handleCategoryChange = event => {
@@ -110,6 +107,7 @@ function Adminadd() {
     };
   }
 
+
   //ADDING CATEGORIES TO FORM
   var categories = categoryData.map((item, index) => (
     <option key={index} value={item.category}>{item.category}</option>)
@@ -119,13 +117,13 @@ function Adminadd() {
 
   //FORM SUBMISSION
   const handleSubmit = event => {
-
     setSubmittedMsg(true);
     console.log(id);
     event.preventDefault();
     document.getElementById("newform").style.backgroundColor = "rgb(252 252 210)";
-    const newData = { id, category, newcategory, userid, model, serial, date, comments, problems };
-    console.log(newData);
+    const newData = { id, category, newcategory, userid, model, serial, date, comments, problems, description };
+    console.log("g",newData);
+    if(submitFlag){
     axios.post(endpoint + "inventory", newData, {
       headers: {
         "Content-type": "application/json"
@@ -133,6 +131,7 @@ function Adminadd() {
     }).then(() => {
       getData();
     });
+  }
     setCategory('');
     setUserId('')
     setId('')
@@ -140,6 +139,7 @@ function Adminadd() {
     setModel('')
     setSerial('')
     setDate('')
+    setDescription('')
     setToggle(prev => !prev);
     document.getElementById("newcategorytext").style.display = "none";
     document.getElementById("newcategorybar").style.display = "none";
@@ -155,20 +155,26 @@ function Adminadd() {
     document.getElementById("newform").style.backgroundColor = "#F0FFFF";
   }
 
-  function addtoform(e) {
+   //ONCLICK EDIT BUTTON MOVE TO HOME ROUTE AND SETTING FORM DATA
+  useEffect(() => {
+    if (c.flagredux) {
+      console.log(c);
+      addtoform(c.id, c.category, c.userid, c.model, c.serial, c.date)
+    }
+  }, [c.flagredux])
 
+  function addtoform(id, category, userid, model, serial, date) {
     scrollToTop();
-    setId(e.target.parentElement.parentElement.childNodes[0].innerHTML)
-    setCategory(e.target.parentElement.parentElement.childNodes[1].innerHTML);
-    setUserId(e.target.parentElement.parentElement.childNodes[2].innerHTML)
-    setModel(e.target.parentElement.parentElement.childNodes[3].innerHTML)
-    setSerial(e.target.parentElement.parentElement.childNodes[4].innerHTML)
-    var datefromtable = e.target.parentElement.parentElement.childNodes[5].innerHTML;
+    setId(id)
+    setCategory(category);
+    setUserId(userid)
+    setModel(model)
+    setSerial(serial)
+    var datefromtable = date;
     var parts = datefromtable.split("-")
     var datetoform = parts[2] + "-" + parts[1] + "-" + parts[0]
     setDate(datetoform);
     setDis(true)
-
   }
 
   //FOR DELETION
@@ -186,74 +192,21 @@ function Adminadd() {
   useEffect(() => {
     if (deletedRow === false) {
       senddata()
-    }
+    } 
   }, [deletedRow])
   var iddelete;
+
   function deleteFromTable(delId) {
     console.log(delId);
     setId(delId)
     setOpen(true)
   }
-  //MULTIPLE SEARCH
-  const scrollToBottom = () => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-  }
-
-  const handleSearch = (e) => {
-
-    var searchData = {}
-    var category = e.target.parentElement.searchcategory.value;
-    if (category !== "")
-      searchData.category = category
-
-    var userid = u;
-    if (userid !== "")
-      searchData.userid = userid
-
-    var model = e.target.parentElement.searchmodel.value;
-    if (model !== "")
-      searchData.model = model
-
-    var serial = e.target.parentElement.searchserial.value;
-    if (serial !== "")
-      searchData.serial = serial
-
-    var d = e.target.parentElement.searchdate.value;
-    const parts = d.split("-");
-    var date = parts[2] + "-" + parts[1] + "-" + parts[0];
-    if (date !== "undefined-undefined-")
-      searchData.date = date
-
-    var temp = data;
-    console.log("fg", searchData);
-    console.log("array", data)
-    if (Object.keys(searchData).length === 0) {
-      setSearchFlag(!searchFlag);
-    }
-    else {
-      for (var keyy in searchData) {
-        temp = temp.filter((row) => row[keyy] === searchData[keyy])
-      }
-      console.log("temp", temp);
-      setFilteredData(temp)
-      scrollToBottom();
-      console.log("search filtered")
-    }
-  }
 
 
-  //SEARCH RESET
-  const handleReset = (e) => {
-    setFilteredData(data)
-    e.target.parentElement.category.value = ""
-    setU('')
-    e.target.parentElement.model.value = ""
-    e.target.parentElement.serial.value = ""
-    e.target.parentElement.date.value = ""
-  }
 
   var file = "";
 
+//UPLOADING FILE
   function handleFileUpload(event) {
     event.target.style.color = "blue"
     file = event.target.files[0];
@@ -266,63 +219,64 @@ function Adminadd() {
     });
   }
 
+  //ON CLICK ADD BUTTON OF A FILE
 
   function uploadToBackend() {
-    var isEmpty=[];
+    var isEmpty = [];
     console.log("posted data", csvData[0].model)
     isEmpty = csvData.filter(obj => {
-      return Object.values(obj).some(val => val ==="" );
+      return Object.values(obj).some(val => val === "");
     });
     console.log(isEmpty);
-  if(isEmpty.length>0){
-    setAddFileFlag(true);
-    setAddFileFlag("fields must not be empty")
-  }
-  else{
-    var found = false;
-    console.log("posted data", csvData)
-    if (Object.values(csvData).length == 0) {
+    if (isEmpty.length > 0) {
       setAddFileFlag(true);
-      setAddFileFlag("Please add file");
+      setAddFileFlag("fields must not be empty")
     }
     else {
-      var keysArray = Object.keys(csvData[0]);
-      if (keysArray[0] === "category" && keysArray[1] === "userid" && keysArray[2] === "model" && keysArray[3] === "serial" && keysArray[4] === "date") {
-        data.forEach(obj1 => {
-          var match=csvData.some(obj => {if(obj.serial === obj1.serial)return true; else return false})
-          if(match){
-            found=true;return;
-          }
-        })
-        console.log(found);
-        if (found == false) {
-          axios.post(endpoint + "upload", csvData, {
-            headers: { 'Content-Type': 'application/json' }
+      var found = false;
+      console.log("posted data", csvData)
+      if (Object.values(csvData).length == 0) {
+        setAddFileFlag(true);
+        setAddFileFlag("Please add file");
+      }
+      else {
+        var keysArray = Object.keys(csvData[0]);
+        if (keysArray[0] === "category" && keysArray[1] === "userid" && keysArray[2] === "model" && keysArray[3] === "serial" && keysArray[4] === "date") {
+          data.forEach(obj1 => {
+            var match = csvData.some(obj => { if (obj.serial === obj1.serial) return true; else return false })
+            if (match) {
+              found = true; return;
+            }
           })
-          setFlag(prevState => !prevState)
-          setAddFileFlag("successfully added");
-         
+          console.log(found);
+          if (found == false) {
+            axios.post(endpoint + "upload", csvData, {
+              headers: { 'Content-Type': 'application/json' }
+            })
+            setFlag(prevState => !prevState)
+            setAddFileFlag("successfully added");
+
+          }
+          else {
+            setOpent(!opent);
+            setDuplicateMsg("serial number must not be duplicate")
+          }
+          document.getElementById("file").value = "";
+          document.getElementById("file").style.color = "black";
         }
         else {
           setOpent(!opent);
-          setDuplicateMsg("serial number must not be duplicate")
-        } 
-        document.getElementById("file").value = "";
-        document.getElementById("file").style.color = "black";
-      }
-      else {
-        setOpent(!opent);
-        setDuplicateMsg("please specify headers in same order [category,userid,model,serial,date]")
+          setDuplicateMsg("please specify headers in same order [category,userid,model,serial,date]")
+        }
       }
     }
+    document.getElementById("file").value = "";
+    document.getElementById("file").style.color = "black";
+    setCsvData([])
   }
-  document.getElementById("file").value = "";
-  document.getElementById("file").style.color = "black";
-  setCsvData([])
-}
 
 
-
+  //DOWNLOAD QR
   const downloadQR = (item) => {
     var keysToDelete = ["_id", "comments", "problems", "category", "model", "date"]
     keysToDelete.forEach(ele => {
@@ -344,6 +298,8 @@ function Adminadd() {
       });
   };
 
+
+  //MODAL ONCLICK OUTSIDE DISAPPEARS
   useEffect(() => {
     function handleClickOutside(event) {
       if (event.target.closest('.more-details') === null) {
@@ -365,7 +321,8 @@ function Adminadd() {
       <div style={{ backgroundColor: "rgb(252 252 210)", padding: "2%" }}>
 
         <div className="form-container">
-          <div style={{display:"flex", flexDirection:"column", width:"30%"}}>
+          <div style={{ display: "flex", flexDirection: "column", width: "30%" }}>
+            <center><h3>Add Inventory here</h3></center>
             <form onSubmit={handleSubmit} className="ui equal width form" id="newform" >
               <label htmlFor="category">Category:</label>
               <select id="category" onChange={handleCategoryChange} value={category} required disabled={dis} >
@@ -415,22 +372,30 @@ function Adminadd() {
                 onChange={(e) => { setDate(e.target.value); }}
                 value={date} required
               />
+              <label htmlFor="description">Specifications:</label>
+              <textarea
+                id="specifications"
+                type="text"
+                placeholder="please add specifications in comma separated"
+                onChange={(e) => { setDescription(e.target.value); }}
+                value={description} rows="1"
+              />
               <button type="submit" className="ui green button" style={{ margin: "10px", float: "right" }}>Submit</button>
               <div className={submittedMsg ? "overlay active" : "overlay"}>
                 {
                   <div className="more-details">successfully submitted
-                    <hr style={{ border: "1px black solid", width: "100%" }} /> 
+                    <hr style={{ border: "1px black solid", width: "100%" }} />
                     <span>
-                    <Button color='green' style={{ marginTop: "2%" }} onClick={()=>{setSubmittedMsg(false)}}>Ok</Button>
-                    {/* <Button color='red'  style={{ marginTop: "2%", float: "right" }} onClick={()=>{setSubmittedMsg(false)}}>Cancel</Button> */}
-                  </span> 
+                      <Button color='green' style={{ marginTop: "2%" }} onClick={() => {setSubmitFlag(true); setSubmittedMsg(false) }}>Ok</Button>
+                      <Button color='red'   onClick={()=>{setSubmitFlag(false);setSubmittedMsg(false)}}>Cancel</Button>
+                    </span>
                   </div>
 
                 }
               </div>
             </form>
 
-             {/* FILE UPLOAD  */}
+            {/* FILE UPLOAD  */}
             <div className='file'>
               <input id="file" required type="file" onChange={handleFileUpload} accept=".csv" />
               <button onClick={uploadToBackend} className="fileaddbtn">Add</button>
@@ -444,70 +409,12 @@ function Adminadd() {
             </div>
 
           </div>
-
-          {/* SEARCH FORM  */}
-          <form className="ui equal width form" id="searchform">
-
-            <label htmlFor="searchcategory">Category:</label>
-            <select id="searchcategory">
-              <option value="" >Select Category</option>
-              {categories}
-            </select>
-
-            <label htmlFor="searchuserid">User Id</label>
-            <Dropdown style={{ width: "100%" }}
-              search
-              selection
-              id="searchuserid"
-              options={options}
-              placeholder='Select user'
-              value={u}
-              onChange={(e) => {
-                console.log(e.target.innerText);
-                setU(e.target.innerText)
-              }}
-            />
-
-            <label htmlFor="searchmodel">Model:</label>
-            <input
-              type="text"
-              id="searchmodel"
-              placeholder='enter model'
-            />
-            <label htmlFor="searchserial">Serial No:</label>
-            <input
-              type="text"
-              id="searchserial"
-              placeholder='enter serial'
-            />
-            <label htmlFor="searchdate">Date:</label>
-            <input
-              type="date"
-              id="searchdate"
-              placeholder="DD-MM-YYYY"
-            />
-            <button type="button" onClick={handleSearch} className="ui yellow button" style={{ margin: "10px", float: "right" }}>Search</button>
-            <button type="button" onClick={handleReset} className="ui yellow button" style={{ margin: "10px", float: "left" }}>Reset</button>
-          </form>
-        </div>
-
-
-
-
-        {/* GLOBAL SEARCH BAR  */}
-        <div className="ui search" style={{ float: "left", marginTop: "2%", marginRight: "10%", marginBottom :"2%",paddingLeft: "3%", }}>
-          <div className="ui icon input">
-            <input className="prompt" type="text" placeholder="Search" value={searchQuery}
-              onChange={handleSearchQueryChange} style={{ width: "200px", boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }} />
-            <i className="search icon"></i>
-          </div>
         </div>
 
         <Table data={filteredData} addtoform={addtoform} deletefromtable={deleteFromTable} getData={getData} downloadQR={downloadQR} />
         <canvas ref={setCanvas} style={{ display: 'none' }} />
         <hr />
         <footer style={{ textAlign: "center" }}>&copy; Copyright 2023 Madhuri</footer>
-
 
         {/* ON CLICKING DELETE BUTTON WINDOWS OPENS */}
         <div className={open ? "overlay active" : "overlay"}>

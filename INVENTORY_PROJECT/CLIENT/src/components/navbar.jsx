@@ -36,20 +36,36 @@ export default function Navbar() {
             <Menu fixed='top'>
                 {State.loggedIn ? (
                     <>
-                        <Menu.Item
-                            name='home'
-                            active={activeItem === 'home'}
+                    
+                      {(cookie.get("admin") === "true") && <Menu.Item
+                        name='Home'
+                        as={NavLink}
+                        to=""
+                        active={activeItem === 'Home'}
+                        onClick={handleItemClick}
+                    />}
+                        { (cookie.get("admin") === "true") && < Menu.Item
+                            name='Assigned to me'
+                            active={activeItem === 'Assigned to me'}
+                            as={NavLink}
+                            to="/Assignedtome"
+                            onClick={handleItemClick}
+                        />}
+                        
+                          {(cookie.get("admin") === "true") && <Menu.Item
+                        name='Search'
+                        as={NavLink}
+                        to="/search"
+                        active={activeItem === 'Company'}
+                        onClick={handleItemClick}
+                    />}
+                    {(cookie.get("admin") !== "true") &&  <Menu.Item
+                            name='Assigned to me'
+                            active={activeItem === 'Assigned to me'}
                             as={NavLink}
                             to=""
                             onClick={handleItemClick}
-                        />
-                        {(cookie.get("admin") === "true") && <Menu.Item
-                        name='Add Inventory'
-                        as={NavLink}
-                        to="/admin"
-                        active={activeItem === 'Add Inventory'}
-                        onClick={handleItemClick}
-                    />}
+                        />}
                         <Menu.Menu position="right">
                             <Dropdown
                                 item

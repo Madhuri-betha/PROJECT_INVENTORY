@@ -10,6 +10,5 @@ root.render(
     <App />
   </Provider>
     
-
 );
 

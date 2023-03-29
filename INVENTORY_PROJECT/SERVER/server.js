@@ -83,6 +83,7 @@ app.post("/upload", (req, res) => {
 
 //FORM SUBMISSION 
 app.post('/inventory', (req, res) => {
+  console.log(req.body);
   let idata = req.body
   const dateString = req.body.date; // YYYY-MM-DD format
   const parts = dateString.split("-");

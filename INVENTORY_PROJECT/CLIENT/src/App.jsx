@@ -7,6 +7,7 @@ import Auth from "./components/auth";
 import ErrorPage from "./components/error";
 import Adminadd from "./components/adminadd";
 import Userpage from "./components/userpage";
+import Search from "./components/search";
 import Cookies from "universal-cookie";
 
 export default function App() {
@@ -53,13 +54,18 @@ const router=createBrowserRouter(!isAdmin
         element: <Login />,
       },
       {
-        path: "/admin",
+        path: "",
         element: <Adminadd />,
         },
-      {
-         path: "",
-        element: <Userpage />,
-      },
+        {
+          path: "/Assignedtome",
+         element: <Userpage />,
+       },
+        {
+          path: "/search",
+          element: <Search />,
+          },
+      
       {
         path: "inventory/authenticate",
         element: <Auth />,
