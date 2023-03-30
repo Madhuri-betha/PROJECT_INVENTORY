@@ -5,14 +5,14 @@ import axios from 'axios';
 import { Dropdown, Button } from 'semantic-ui-react';
 import Cookies from 'universal-cookie';
 import QRCode from 'qrcode';
-import { useDispatch, useSelector } from 'react-redux';
-import { setGlobalCategory, setGlobalDate, setGlobalFlagRedux, setGlobalId, setGlobalModel, setGlobalSerial, setGlobalUserId } from '../reducers/globalStates';
+import { useDispatch } from 'react-redux';
+import { setGlobalCategory, setGlobalDate, setGlobalFlagRedux, setGlobalId, setGlobalModel, setGlobalSerial, setGlobalUserId, setGlobalDescription } from '../reducers/globalStates';
 
 
 export default function Search() {
 
   const dispatcher = useDispatch();
-  const endpoint = "http://192.168.1.14:9000/"
+  const endpoint = "http://192.168.1.36:9000/"
 
   const [canvas, setCanvas] = useState(null);
   const [open, setOpen] = useState(false)
@@ -21,22 +21,23 @@ export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState([])
   const [filteredData, setFilteredData] = useState([])
-  const [u, setU] = useState("")
+  const [searchUserId, setSearchUserId] = useState("")
   const [categoryData, setCategoryData] = useState([])
   const [options, setOptions] = useState(null)
   const [searchFlag, setSearchFlag] = useState(false)
   const [tableflag, setTableFlag] = useState(false)
   const [searchData, setSearchData] = useState({})
 
-   const cookie = new Cookies();
+  const cookie = new Cookies();
 
+
+  //USERS API
   let users = [];
   useEffect(() => {
     fetch("https://backflipt-accounts.onrender.com/users")
       .then(response => response.json())
       .then(data => {
         let temp = { key: "", text: "", value: "" }
-        console.log(data);
         data.forEach(element => {
           temp.key = element.username;
           temp.text = element.username;
@@ -48,7 +49,7 @@ export default function Search() {
   }, [])
 
 
-    
+
   useEffect(() => {
     getData();
     getCategory();
@@ -81,8 +82,6 @@ export default function Search() {
   }, [data])
 
   function print() {
-    console.log("hh", searchData);
-    console.log("hhkkk", data);
     searchData.category = localStorage.getItem("category")
     searchData.userid = localStorage.getItem("userid")
     searchData.model = localStorage.getItem("model")
@@ -92,26 +91,21 @@ export default function Search() {
       setSearchFlag(!searchFlag);
     }
     else {
-      console.log("else", searchData);
       setTableFlag(true);
-      console.log(data);
       for (let key in searchData) {
         if (searchData[key] === "" || searchData[key] === null) {
           delete searchData[key];
         }
       }
-      console.log("null", searchData);
       for (var keyy in searchData) {
-        console.log(searchData[keyy]);
         temp = temp.filter((row) => row[keyy] === searchData[keyy])
       }
       setFilteredData(temp)
-      console.log(temp)
     }
   }
 
   //SEARCH SUBMIT
-  console.log(filteredData);
+
   const handleSearch = (e) => {
     var category = e.target.parentElement.searchcategory.value;
     if (category !== "") {
@@ -119,7 +113,7 @@ export default function Search() {
       searchData.category = localStorage.getItem("category")
     }
 
-    var userid = u;
+    var userid = searchUserId;
     if (userid !== "") {
       localStorage.setItem("userid", userid)
       searchData.userid = localStorage.getItem("userid")
@@ -140,12 +134,12 @@ export default function Search() {
     var date = parts[2] + "-" + parts[1] + "-" + parts[0];
     if (date !== "undefined-undefined-")
       searchData.date = date
-    console.log("fg", searchData);
 
-    Object.keys(searchData).forEach((ele) => {
-      cookie.set(ele, searchData[ele])
-    })
     print();
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth'
+    });
   }
 
 
@@ -160,17 +154,17 @@ export default function Search() {
     setFilteredData(data)
     setTableFlag(false);
     e.target.parentElement.searchcategory.value = ""
-    setU('')
+    setSearchUserId('')
     e.target.parentElement.searchmodel.value = ""
     e.target.parentElement.searchserial.value = ""
     e.target.parentElement.searchdate.value = ""
   }
-  var categories = categoryData.map((item, index) => (
-    <option key={index} value={item.category}>{item.category}</option>)
-  )
- 
+
+
+
   //GLOBAL SEARCH
   const handleSearchQueryChange = (event) => {
+    setTableFlag(true)
     setSearchQuery(event.target.value);
     var filteredData;
     filteredData = data.filter((row) => {
@@ -185,6 +179,7 @@ export default function Search() {
 
   //ONCLICK EDIT BUTTON MOVE TO HOME ROUTE AND SETTING FORM DATA
   function addtoform(id, category, userid, model, serial, date, description) {
+
     console.log(id, category, userid, model, serial);
     dispatcher(setGlobalCategory(category))
     dispatcher(setGlobalId(id))
@@ -192,6 +187,7 @@ export default function Search() {
     dispatcher(setGlobalModel(model))
     dispatcher(setGlobalSerial(serial))
     dispatcher(setGlobalDate(date))
+    dispatcher(setGlobalDescription(description))
     dispatcher(setGlobalFlagRedux(true))
   }
 
@@ -220,7 +216,7 @@ export default function Search() {
     }
   }, [deletedRow])
 
-  
+
   //qR DOWNLOAD
   const downloadQR = (item) => {
     var keysToDelete = ["_id", "comments", "problems", "model", "date", "description", "updatedAt", "createdAt"]
@@ -260,17 +256,19 @@ export default function Search() {
 
   return (
 
-    <div style={{ marginTop: "5%" }}>
+    <div style={{ marginTop: "5%"}}>
 
-      <div style={{ marginLeft: "180px" }}>
-        <div style={{display:"flex"}}>
-        <h3 className="searchhead" style={{ marginBottom: "0%" }}>categorized search</h3>
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-evenly" }}>
+      <div  style={{ display: "flex", flexDirection: "column", alignItems: "center",width: "30%" }}>
+          <h3 className="searchheaders">Categorized Search</h3>
+        
         <form className="ui equal width form" id="searchform" >
           <label htmlFor="searchcategory">Category:</label>
           <select id="searchcategory">
             <option value="" >Select Category</option>
-            {categories}
+            {categoryData.map((item, index) => (
+              <option key={index} value={item.category}>{item.category}</option>)
+            )}
           </select>
 
           <label htmlFor="searchuserid">User Id</label>
@@ -280,10 +278,10 @@ export default function Search() {
             id="searchuserid"
             options={options}
             placeholder='Select user'
-            value={u}
+            value={searchUserId}
             onChange={(e) => {
               console.log(e.target.innerText);
-              setU(e.target.innerText)
+              setSearchUserId(e.target.innerText)
             }}
           />
 
@@ -308,11 +306,10 @@ export default function Search() {
           <button type="button" onClick={handleSearch} className="ui yellow button" style={{ margin: "10px", float: "right" }}>Search</button>
           <button type="button" onClick={handleReset} className="ui yellow button" style={{ margin: "10px", float: "left" }}>Reset</button>
         </form>
-      </div>
+        </div>
 
-      {/* <h6>Global search</h6> */}
-      <div style={{ float: "left", marginTop: "-2%", marginBottom: "2%", paddingLeft: "3%", }}>
-       <h3 className='globalsearchhead'>Global Search</h3>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <h3 className="searchheaders">Global Search</h3>
         <div className="ui search" >
           <div className="ui icon input">
             <input className="prompt" type="text" placeholder="Search" value={searchQuery}
@@ -320,9 +317,10 @@ export default function Search() {
             <i className="search icon"></i>
           </div>
         </div>
-      </div>
+        </div>
 
-      {tableflag && <Table data={filteredData} addtoform={addtoform} deletefromtable={deleteFromTable} downloadQR={downloadQR} />}
+    </div>
+
 
       {/* MODAL FOR DELETION OF A ROW */}
       <div className={open ? "overlay active" : "overlay"}>
@@ -337,7 +335,8 @@ export default function Search() {
           </div>
         }
       </div>
-
+      {tableflag && <div style={{display:"block",marginLeft:"17px",marginRight:"17px"}}><Table data={filteredData} addtoform={addtoform} getData={getData} deletefromtable={deleteFromTable} downloadQR={downloadQR} /></div>}
+   
     </div>
 
   )

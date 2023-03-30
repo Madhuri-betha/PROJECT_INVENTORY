@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{memo,useState} from 'react';
 
 import * as FileSaver from 'file-saver';
 import { PDFDownloadLink } from '@react-pdf/renderer';
@@ -40,11 +40,11 @@ const downloadCSV = (csvData, filename) => {
   FileSaver.saveAs(blob, filename);
 };
 
-let temp;
+// let temp;
 
-const Download = (props) => {
-  temp = (props.data1)
-
+const Download = (props)=> {
+  // temp = (props.data1)
+  const [temp, setTemp] = useState(props.data1);
   const handleDownload = (data) => {
     data.filter(obj=>{
       delete obj["_id"]
@@ -56,7 +56,7 @@ const Download = (props) => {
   };
 
 
-  const MyDocument = () => (
+  const MyDocument = memo(() => (
     <Document>
       <Page>
         <View style={styles.table}>
@@ -87,11 +87,13 @@ const Download = (props) => {
         </View>
       </Page>
     </Document>
-  );
+  ));
+
 
   return (
+
     <div>
-      <button onClick={() => handleDownload(temp)} className="ui button" style={{ margin: "10px", float: "right", marginLeft: "1%" }} ><i className="download icon"></i>csv</button>
+      <button onClick={() => handleDownload(temp)} className="ui button" style={{ marginTop:"10px",margin: "10px", float: "right", marginLeft: "1%" }} ><i className="download icon"></i>csv</button>
 
       <PDFDownloadLink document={<MyDocument />} fileName="table.pdf" className="ui button" style={{ margin: "10px", float: "right", marginLeft: "2%" }}>
       {({ loading, error }) => (

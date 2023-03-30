@@ -9,16 +9,16 @@ import 'semantic-ui-css/semantic.min.css'
 import { useSelector } from 'react-redux';
 
 function Adminadd() {
+
   const c = useSelector((store) => store.globalStates)
-  console.log("redu", c);
 
-  var endpoint = "http://192.168.1.14:9000/"
+  var endpoint = "http://192.168.1.36:9000/"
 
-  const [canvas, setCanvas] = useState(null);
   const [data, setData] = useState([])
   const [categoryData, setCategoryData] = useState([])
   const [filteredData, setFilteredData] = useState([])
-  
+
+  const [newCategoryFlag, setNewCategoryFlag] = useState(false)
   const [category, setCategory] = useState("")
   const [userid, setUserId] = useState(null)
   const [newcategory, setNewCategory] = useState("")
@@ -31,18 +31,16 @@ function Adminadd() {
   const [id, setId] = useState("")
   const [description, setDescription] = useState("")
 
+
   const [deletedRow, setDeletedRow] = useState(true)
+  const [canvas, setCanvas] = useState(null);
   const [csvData, setCsvData] = useState([])
   const [flag, setFlag] = useState(true)
   const [submittedMsg, setSubmittedMsg] = useState(false)
   const [open, setOpen] = useState(false)
-  const [opent, setOpent] = useState(false)
-  const [options, setOptions] = useState(null)
-  const [duplicateMsg, setDuplicateMsg] = useState("");
-  const [searchFlag, setSearchFlag] = useState(false)
-  const [dis, setDis] = useState(false)
+  const [userNameOptions, setUserNameOptions] = useState(null)
+  const [categoryDisabled, setCategoryDisabled] = useState(false)
   const [addFileFlag, setAddFileFlag] = useState(false)
-  const [submitFlag,setSubmitFlag]=useState(false)
 
 
 
@@ -51,16 +49,16 @@ function Adminadd() {
   useEffect(() => {
     fetch("https://backflipt-accounts.onrender.com/users")
       .then(response => response.json())
-      .then(data => {
+      .then(usersdata => {
         let temp = { key: "", text: "", value: "" }
-        console.log(data);
-        data.forEach(element => {
-          temp.key = element.username;
-          temp.text = element.username;
-          temp.value = element.username;
+        console.log(usersdata);
+        usersdata.forEach(obj => {
+          temp.key = obj.username;
+          temp.text = obj.username;
+          temp.value = obj.username;
           users.push({ ...temp });
         });
-        setOptions(users);
+        setUserNameOptions(users);
       })
   }, [])
 
@@ -95,75 +93,82 @@ function Adminadd() {
 
   // FORM CATEGORY DISPLAY
   const handleCategoryChange = event => {
+    console.log(event.target.value);
     if (event.target.value === "other") {
       setCategory(event.target.value);
-      document.getElementById("newcategorytext").style.display = "block";
-      document.getElementById("newcategorybar").style.display = "block";
+      console.log("sss");
+      setNewCategoryFlag(true);
     }
     else {
-      document.getElementById("newcategorytext").style.display = "none";
-      document.getElementById("newcategorybar").style.display = "none";
+      console.log("asdc");
       setCategory(event.target.value);
-    };
+      setNewCategoryFlag(false)
+    }
   }
 
 
   //ADDING CATEGORIES TO FORM
-  var categories = categoryData.map((item, index) => (
-    <option key={index} value={item.category}>{item.category}</option>)
-  )
+  var categories ="";
 
+
+
+    function handle() {
+      
+      const newData = { id, category, newcategory, userid, model, serial, date, comments, problems, description }
+      axios.post(endpoint + "inventory", newData, {
+        headers: {
+          "Content-type": "application/json"
+        }
+      })
+        .then(() => {
+          getData();
+
+        });
+      setCategory('');
+      setUserId('')
+      setId('')
+      setNewCategory('')
+      setModel('')
+      setSerial('')
+      setDate('')
+      setDescription('')
+      setToggle(prev => !prev);
+      setCategoryDisabled(false)
+      setNewCategoryFlag(false)
+      setSubmittedMsg(false)
+    }
 
 
   //FORM SUBMISSION
   const handleSubmit = event => {
-    setSubmittedMsg(true);
-    console.log(id);
     event.preventDefault();
     document.getElementById("newform").style.backgroundColor = "rgb(252 252 210)";
-    const newData = { id, category, newcategory, userid, model, serial, date, comments, problems, description };
-    console.log("g",newData);
-    if(submitFlag){
-    axios.post(endpoint + "inventory", newData, {
-      headers: {
-        "Content-type": "application/json"
-      }
-    }).then(() => {
-      getData();
-    });
+    setSubmittedMsg(true);
+
   }
-    setCategory('');
-    setUserId('')
-    setId('')
-    setNewCategory('')
-    setModel('')
-    setSerial('')
-    setDate('')
-    setDescription('')
-    setToggle(prev => !prev);
-    document.getElementById("newcategorytext").style.display = "none";
-    document.getElementById("newcategorybar").style.display = "none";
-    setDis(false)
-  };
+
 
   //ADD TO FORM
   function scrollToTop() {
     window.scrollTo({
-      top: 0,
+      top: 53,
       behavior: 'smooth'
     });
     document.getElementById("newform").style.backgroundColor = "#F0FFFF";
   }
 
-   //ONCLICK EDIT BUTTON MOVE TO HOME ROUTE AND SETTING FORM DATA
+  //ONCLICK EDIT BUTTON MOVE TO HOME ROUTE AND SETTING FORM DATA
   useEffect(() => {
     if (c.flagredux) {
-      console.log(c);
-      addtoform(c.id, c.category, c.userid, c.model, c.serial, c.date)
+      // console.log(c);
+      addtoform(c.id, c.category, c.userid, c.model, c.serial, c.date, c.description)
     }
   }, [c.flagredux])
 
-  function addtoform(id, category, userid, model, serial, date) {
+  function addtoform(id, category, userid, model, serial, date, description) {
+    console.log(c.flagredux);
+    console.log("MADHURI");
+    console.log(userid);
     scrollToTop();
     setId(id)
     setCategory(category);
@@ -174,7 +179,8 @@ function Adminadd() {
     var parts = datefromtable.split("-")
     var datetoform = parts[2] + "-" + parts[1] + "-" + parts[0]
     setDate(datetoform);
-    setDis(true)
+    setDescription(description)
+    setCategoryDisabled(true)
   }
 
   //FOR DELETION
@@ -192,9 +198,9 @@ function Adminadd() {
   useEffect(() => {
     if (deletedRow === false) {
       senddata()
-    } 
+    }
   }, [deletedRow])
-  var iddelete;
+
 
   function deleteFromTable(delId) {
     console.log(delId);
@@ -206,10 +212,12 @@ function Adminadd() {
 
   var file = "";
 
-//UPLOADING FILE
+  //UPLOADING FILE
   function handleFileUpload(event) {
     event.target.style.color = "blue"
+    console.log(event.target.files);
     file = event.target.files[0];
+    console.log(file);
     Papa.parse(file, {
       header: true,
       complete: (results) => {
@@ -222,26 +230,27 @@ function Adminadd() {
   //ON CLICK ADD BUTTON OF A FILE
 
   function uploadToBackend() {
-    var isEmpty = [];
-    console.log("posted data", csvData[0].model)
-    isEmpty = csvData.filter(obj => {
-      return Object.values(obj).some(val => val === "");
-    });
-    console.log(isEmpty);
-    if (isEmpty.length > 0) {
+    console.log(addFileFlag);
+    console.log("posted data", csvData)
+    if (Object.values(csvData).length == 0) {
       setAddFileFlag(true);
-      setAddFileFlag("fields must not be empty")
+      setAddFileFlag("Please add file");
     }
     else {
-      var found = false;
-      console.log("posted data", csvData)
-      if (Object.values(csvData).length == 0) {
-        setAddFileFlag(true);
-        setAddFileFlag("Please add file");
-      }
-      else {
-        var keysArray = Object.keys(csvData[0]);
-        if (keysArray[0] === "category" && keysArray[1] === "userid" && keysArray[2] === "model" && keysArray[3] === "serial" && keysArray[4] === "date") {
+      var keysArray = Object.keys(csvData[0]);
+      if (keysArray[0] === "category" && keysArray[1] === "userid" && keysArray[2] === "model" && keysArray[3] === "serial" && keysArray[4] === "date") {
+
+        var isEmpty = [];
+        isEmpty = csvData.filter(obj => {
+          return Object.values(obj).some(val => val === "");
+        });
+        console.log(isEmpty);
+        if (isEmpty.length > 0) {
+          setAddFileFlag("fields must not be empty")
+        }
+
+        else {
+          var found = false;
           data.forEach(obj1 => {
             var match = csvData.some(obj => { if (obj.serial === obj1.serial) return true; else return false })
             if (match) {
@@ -258,16 +267,12 @@ function Adminadd() {
 
           }
           else {
-            setOpent(!opent);
-            setDuplicateMsg("serial number must not be duplicate")
+            setAddFileFlag("serial number must not be duplicate")
           }
-          document.getElementById("file").value = "";
-          document.getElementById("file").style.color = "black";
         }
-        else {
-          setOpent(!opent);
-          setDuplicateMsg("please specify headers in same order [category,userid,model,serial,date]")
-        }
+      }
+      else {
+        setAddFileFlag("please specify headers in same order [category,userid,model,serial,date]")
       }
     }
     document.getElementById("file").value = "";
@@ -278,13 +283,14 @@ function Adminadd() {
 
   //DOWNLOAD QR
   const downloadQR = (item) => {
-    var keysToDelete = ["_id", "comments", "problems", "category", "model", "date"]
+
+    var keysToDelete = ["_id", "comments", "problems", "model", "date", "description", "updatedAt", "createdAt"]
     keysToDelete.forEach(ele => {
       delete item[ele]
     })
     QRCode.toCanvas(canvas, JSON.stringify(item), { scale: 10 })
       .then(canvas => {
-        setCanvas(canvas);
+        // setCanvas(canvas);
         const pngUrl = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
         downloadLink.href = pngUrl;
@@ -304,14 +310,14 @@ function Adminadd() {
     function handleClickOutside(event) {
       if (event.target.closest('.more-details') === null) {
         setOpen(false);
-        setOpent(false); setSubmittedMsg(false); setSearchFlag(false); setAddFileFlag(false);
+        setSubmittedMsg(false); setAddFileFlag(false);
       }
     }
     window.addEventListener('mousedown', handleClickOutside);
     return () => {
       window.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [open, opent]);
+  }, [open]);
 
 
 
@@ -323,32 +329,36 @@ function Adminadd() {
         <div className="form-container">
           <div style={{ display: "flex", flexDirection: "column", width: "30%" }}>
             <center><h3>Add Inventory here</h3></center>
+
             <form onSubmit={handleSubmit} className="ui equal width form" id="newform" >
+
               <label htmlFor="category">Category:</label>
-              <select id="category" onChange={handleCategoryChange} value={category} required disabled={dis} >
+              <select id="category" onChange={handleCategoryChange} value={category} required disabled={categoryDisabled} >
                 <option value="">Select Category</option>
                 <option value="other">other</option>
-                {categories}
+                {categoryData.map((item, index) => (
+                <option key={index} value={item.category}>{item.category}</option>
+                  ))}
               </select>
-              <label htmlFor="newcategory" id="newcategorytext" style={{ display: "none" }}>Add new category:</label>
-              <input
-                type="text"
-                style={{ display: "none" }}
-                placeholder="enter new category"
-                id="newcategorybar"
-                onChange={(e) => { setNewCategory(e.target.value) }}
-                value={newcategory}
-              />
 
-              <label htmlFor="userid">User Id</label>
+              {newCategoryFlag && <><label htmlFor="newcategory" id="newcategorytext" >Add new category:</label>
+                <input
+                  type="text"
+                  placeholder="enter new category"
+                  id="newcategorybar"
+                  onChange={(e) => { setNewCategory(e.target.value) }}
+                  value={newcategory} pattern=".*\S.*" title="This field is required"
+                /></>}
+
+              <label htmlFor="userid">User Name:</label>
               <Dropdown style={{ width: "100%" }}
                 search
                 selection
                 id="userid"
-                options={options}
+                options={userNameOptions}
                 placeholder='Select User'
                 value={userid}
-                onChange={(e, data) => { setUserId(data.value); }} required
+                onChange={(event, options) => { setUserId(options.value); }} required
               />
 
               <label htmlFor="model">Model:</label>
@@ -356,21 +366,21 @@ function Adminadd() {
                 type="text"
                 placeholder='enter model'
                 onChange={(e) => { setModel(e.target.value) }}
-                value={model} required
+                value={model} required pattern=".*\S.*" title="This field is required"
               />
               <label htmlFor="serial">Serial No:</label>
               <input
                 type="text"
                 placeholder='enter serial'
                 onChange={(e) => { setSerial(e.target.value) }}
-                value={serial} required
+                value={serial} required pattern=".*\S.*" title="This field is required"
               />
               <label htmlFor="date">Date:</label>
               <input
                 type="date"
                 placeholder="DD-MM-YYYY"
                 onChange={(e) => { setDate(e.target.value); }}
-                value={date} required
+                value={date} required pattern=".*\S.*" title="This field is required"
               />
               <label htmlFor="description">Specifications:</label>
               <textarea
@@ -378,22 +388,35 @@ function Adminadd() {
                 type="text"
                 placeholder="please add specifications in comma separated"
                 onChange={(e) => { setDescription(e.target.value); }}
-                value={description} rows="1"
+                value={description} rows="1" pattern=".*\S.*" title="This field is required"
               />
               <button type="submit" className="ui green button" style={{ margin: "10px", float: "right" }}>Submit</button>
-              <div className={submittedMsg ? "overlay active" : "overlay"}>
-                {
-                  <div className="more-details">successfully submitted
-                    <hr style={{ border: "1px black solid", width: "100%" }} />
-                    <span>
-                      <Button color='green' style={{ marginTop: "2%" }} onClick={() => {setSubmitFlag(true); setSubmittedMsg(false) }}>Ok</Button>
-                      <Button color='red'   onClick={()=>{setSubmitFlag(false);setSubmittedMsg(false)}}>Cancel</Button>
-                    </span>
-                  </div>
-
-                }
-              </div>
             </form>
+
+            {/* FORM SUBMISSION MODAL DISPLAY  */}
+
+            <div className={submittedMsg ? "overlay active" : "overlay"}>
+              {
+                <div className="more-details">would you like to add the data
+                  <hr style={{ border: "1px black solid", width: "100%" }} />
+                  <span>
+                    <Button color='green' style={{ marginTop: "2%" }} onClick={handle}>Ok</Button>
+                    <Button color='red' onClick={() => {
+                      setSubmittedMsg(false); setCategory('');
+                      setUserId('')
+                      setId('')
+                      setNewCategory('')
+                      setModel('')
+                      setSerial('')
+                      setDate('')
+                      setDescription('')
+                      document.getElementById("newform").style.color = "rgb(252 252 210)"
+                    }}>Cancel</Button>
+                  </span>
+                </div>
+
+              }
+            </div>
 
             {/* FILE UPLOAD  */}
             <div className='file'>
@@ -411,10 +434,12 @@ function Adminadd() {
           </div>
         </div>
 
+
         <Table data={filteredData} addtoform={addtoform} deletefromtable={deleteFromTable} getData={getData} downloadQR={downloadQR} />
-        <canvas ref={setCanvas} style={{ display: 'none' }} />
+        {/* <canvas ref={setCanvas} style={{ display: 'none' }} /> */} 
         <hr />
         <footer style={{ textAlign: "center" }}>&copy; Copyright 2023 Madhuri</footer>
+
 
         {/* ON CLICKING DELETE BUTTON WINDOWS OPENS */}
         <div className={open ? "overlay active" : "overlay"}>
@@ -426,27 +451,6 @@ function Adminadd() {
                 <Button color='red' onClick={() => { setDeletedRow(false); setOpen(false) }} style={{ marginTop: "2%" }}>Delete</Button>
                 <Button color='blue' onClick={() => { setOpen(!open) }} style={{ marginTop: "2%", float: "right" }}>Cancel</Button>
               </span>
-            </div>
-          }
-        </div>
-
-        {/* ON CSV UPLOADING CHECKING FOR SERIAL AND HEADERS  */}
-        <div className={opent ? "overlay active" : "overlay"}>
-          {
-            <div className="more-details">
-              {duplicateMsg}
-              <Button color='green' onClick={() => { setOpent(false) }} style={{ marginTop: "2%", float: "right" }}>Ok</Button>
-            </div>
-          }
-        </div>
-
-        {/* ON EMPTY SEARCHING ALERT */}
-        <div className={searchFlag ? "overlay active" : "overlay"}>
-          {
-            <div className="more-details">
-              Please Enter atleast one value to search
-              <Button color='green' onClick={() => { setSearchFlag(false) }} style={{ marginTop: "2%", float: "right" }}>Ok</Button>
-
             </div>
           }
         </div>

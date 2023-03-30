@@ -1,6 +1,6 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { Search,Button } from 'semantic-ui-react';
+import { Search, Button } from 'semantic-ui-react';
 import 'semantic-ui-css/semantic.min.css'
 import axios from 'axios';
 import Cookies from "universal-cookie";
@@ -14,7 +14,7 @@ export default function Userpage() {
     const [searchQuery, setSearchQuery] = useState("")
     const [description, setDescription] = useState("")
     const [descriptionFlag, setDescriptionFlag] = useState(false)
-    var endpoint = "http://192.168.1.14:9000/"
+    var endpoint = "http://192.168.1.36:9000/"
 
     //GLOBAL SEARCH
     const handleSearchQueryChange = (e) => {
@@ -22,12 +22,12 @@ export default function Userpage() {
     }
     const filteredData = data.filter((row) => {
         return Object.values(row).some((value) => {
-            if (value!="")
+            if (value != "")
                 return value.toLowerCase().includes(searchQuery.toLowerCase())
-            return false 
+            return false
         })
     });
-   
+
 
     const getData = () => {
         axios.get(endpoint + "getdata")
@@ -37,7 +37,7 @@ export default function Userpage() {
                 response.data.forEach((obj) => {
                     if (obj.userid == user) {
                         b.push({ ...obj })
-                    } 
+                    }
                 })
                 setData(b)
             })
@@ -57,35 +57,33 @@ export default function Userpage() {
             });
         }
 
-    }, [problems,id])
+    }, [problems, id])
 
-   //PROBLEMS SUBMIT
-    const handleSubmit = (event,id,index) => {
+    //PROBLEMS SUBMIT
+    const handleSubmit = (event, id, index) => {
         event.preventDefault();
-        setID(id);     
+        setID(id);
         let temp2 = event.target.parentElement.parentElement.childNodes[6].childNodes[0].value;
         event.target.parentElement.parentElement.childNodes[6].childNodes[0].value = ""
         setProb(temp2)
-   }
+    }
 
 
     var tabledata = filteredData.map((item, index) => (
         <tr key={index}>
             <td>{item.id}</td>
-            <td className='category' onClick={()=>{setDescription(item.description);setDescriptionFlag(true)}}>{item.category}</td>
+            <td className='category' onClick={() => { setDescription(item.description); setDescriptionFlag(true) }}>{item.category}</td>
             <td>{item.userid}</td>
             <td>{item.model}</td>
             <td>{item.serial}</td>
             <td>{item.date}</td>
-            <td className="ui focus input"><input type="text" name="problems"/></td>
-            <td><button type="submit"  className="ui green button" onClick={(e)=>{handleSubmit(e,item.id)}}>Submit</button></td>
+            <td className="ui focus input"><input type="text" name="problems" /></td>
+            <td><button type="submit" className="ui green button" onClick={(e) => { handleSubmit(e, item.id) }}>Submit</button></td>
         </tr>
     ))
     //FORM DESCRIPTION
-    var descriptionarray=description.split(",")
-    var des=descriptionarray.map(ele=>{
-        return <li>{ele}</li>
-    })
+    var descriptionarray = description.split(",")
+
 
 
     return (
@@ -120,13 +118,15 @@ export default function Userpage() {
                 {
                     <div className="more-details">
                         <ul>
-                        {des}
+                            {descriptionarray.map(ele => {
+                                return <li>{ele}</li>
+                            })}
                         </ul>
                         <Button color='green' onClick={() => { setDescriptionFlag(false) }} style={{ marginTop: "2%", float: "right" }}>Ok</Button>
                     </div>
                 }
             </div>
-             {/* <footer className='footer'>&copy; Copyright 2023 Madhuri</footer> */}
+            {/* <footer className='footer'>&copy; Copyright 2023 Madhuri</footer> */}
 
         </div>
     )

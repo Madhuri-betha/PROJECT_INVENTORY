@@ -13,6 +13,7 @@ export const globalStates = createSlice({
     model: "",
     serial: "",
     date: "",
+    description:"",
     flagredux: false
   },
   reducers: {
@@ -25,7 +26,6 @@ export const globalStates = createSlice({
       state.admin = action.payload
     },
     setGlobalId: (state, action) => {
-      console.log(action.payload);
       state.id = action.payload
     },
     setGlobalCategory: (state, action) => {
@@ -33,7 +33,6 @@ export const globalStates = createSlice({
     },
     setGlobalUserId: (state, action) => {
       state.userid = action.payload
-
     },
     setGlobalModel: (state, action) => {
       state.model = action.payload
@@ -43,19 +42,17 @@ export const globalStates = createSlice({
     },
     setGlobalDate: (state, action) => {
       state.date = action.payload
-
-    },
+   },
+   setGlobalDescription: (state, action) => {
+    state.description = action.payload
+ },
     setGlobalFlagRedux: (state, action) => {
       state.flagredux = action.payload
     }
 
   },
 });
-export const { setLogins, setAdmin, setGlobalId, setGlobalCategory, setGlobalUserId, setGlobalModel, setGlobalSerial, setGlobalDate, setGlobalFlagRedux } = globalStates.actions;
+export const { setLogins, setAdmin, setGlobalId, setGlobalCategory, setGlobalUserId, setGlobalModel, setGlobalSerial, setGlobalDate, setGlobalDescription,setGlobalFlagRedux } = globalStates.actions;
 export default globalStates.reducer;
-// searchData.category = localStorage.getItem("category")
-// searchData.userid = localStorage.getItem("userid")
-// searchData.model= localStorage.getItem("model")
-// searchData.serial= localStorage.getItem("serial")
-// searchData.date = localStorage.getItem("date")
+
 
